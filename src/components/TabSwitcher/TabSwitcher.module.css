@@ -1,0 +1,43 @@
+.tabContainer {
+    position: relative;
+    width: 329px; 
+    height: 32px; 
+    background-color: rgba(118, 118, 128, 0.12);
+    border-radius: 100px; 
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 4px; 
+    box-sizing: border-box; 
+    margin-top: 20px; 
+  }
+  
+  .activeTabIndicator {
+    position: absolute;
+    top: 4px; 
+    left: 4px;
+    width: calc(50% - 4px);
+    height: 23px; 
+    background-color: #ffffff;
+    border-radius: 100px; 
+    transition: transform 0.3s ease; 
+    z-index: 1; 
+  }
+  
+  .tabButton {
+    flex: 1; 
+    background: none;
+    border: none;
+    color: #000000; 
+    font-family: 'Pretendard', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 2; 
+    position: relative; 
+    transition: color 0.3s ease;
+  }
+  
+  .tabButton.active {
+    color: #000000; 
+  }
