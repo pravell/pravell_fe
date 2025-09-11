@@ -1,0 +1,20 @@
+.customButton {
+  width: 317px;
+  height: 39px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 13px;
+  font-weight: 600; 
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.customButton:hover {
+  filter: brightness(0.9);
+}
