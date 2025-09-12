@@ -3,7 +3,7 @@
     flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
-    background-color: #F9F9FB;
+    /* background-color: #F9F9FB; */
   }
   
   .header {
@@ -65,7 +65,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #ffffff;
+    background-color: #F9F9FB;
     border-radius: 10px;
     padding: 10px 15px;
     width:100%;
