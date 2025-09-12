@@ -1,14 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import MainPage from './pages/MainPage/MainPage';
 import TabBar from './components/TabBar/TabBar';
+import LoginPage from './pages/LoginPage/LoginPage';
 import './App.css';
 
 const MapPage = () => <div>지도 페이지</div>;
 const MyPage = () => <div>마이페이지</div>;
-const LoginPage = () => <div>로그인 페이지</div>;
-const CreatePlanPage = () => <div>여행 플랜 생성 페이지</div>
-const JoinByCodePage = () => <div>초대 코드로 참여</div>
+const CreatePlanPage = () => <div>여행 플랜 생성 페이지</div>;
+const JoinByCodePage = () => <div>초대 코드로 참여</div>;
 
 const App = () => {
   return (
@@ -26,11 +26,24 @@ const App = () => {
             <Route path="/join-by-code" element={<JoinByCodePage />} />
           </Routes>
         </div>
+        <TabBarController />
+      </div>
+    </Router>
+  );
+};
+
+const TabBarController = () => {
+  const location = useLocation();
+  const hideTabBar = location.pathname === '/login';
+
+  return (
+    <>
+      {!hideTabBar && (
         <div className="TabBar-Container">
           <TabBar />
         </div>
-      </div>
-    </Router>
+      )}
+    </>
   );
 };
 
