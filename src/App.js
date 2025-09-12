@@ -6,9 +6,9 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import SignupPage from './pages/SignupPage/SignupPage';
 import CreatePlanPage from './pages/CreatePlanPlge/CreatePlanPage';
 import JoinByCodePage from './pages/JoinByCodePage/JoinbyCodePage';
+import MapPage from './pages/MapPage/MapPage';
 import './App.css';
 
-const MapPage = () => <div>지도 페이지</div>;
 const MyPage = () => <div>마이페이지</div>;
 
 const App = () => {
