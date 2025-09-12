@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import MainPage from './pages/MainPage/MainPage';
 import TabBar from './components/TabBar/TabBar';
 import LoginPage from './pages/LoginPage/LoginPage';
+import SignupPage from './pages/SignupPage/SignupPage';
 import './App.css';
 
 const MapPage = () => <div>지도 페이지</div>;
@@ -24,6 +25,7 @@ const App = () => {
             <Route path="/my" element={<MyPage />} />
             <Route path="/create-plan" element={<CreatePlanPage />} />
             <Route path="/join-by-code" element={<JoinByCodePage />} />
+            <Route path="/signup" element={<SignupPage />} />
           </Routes>
         </div>
         <TabBarController />
@@ -34,7 +36,7 @@ const App = () => {
 
 const TabBarController = () => {
   const location = useLocation();
-  const hideTabBar = location.pathname === '/login';
+  const hideTabBar = (location.pathname === '/login' || location.pathname === '/signup');
 
   return (
     <>
