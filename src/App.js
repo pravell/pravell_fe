@@ -5,11 +5,11 @@ import TabBar from './components/TabBar/TabBar';
 import LoginPage from './pages/LoginPage/LoginPage';
 import SignupPage from './pages/SignupPage/SignupPage';
 import CreatePlanPage from './pages/CreatePlanPlge/CreatePlanPage';
+import JoinByCodePage from './pages/JoinByCodePage/JoinbyCodePage';
 import './App.css';
 
 const MapPage = () => <div>지도 페이지</div>;
 const MyPage = () => <div>마이페이지</div>;
-const JoinByCodePage = () => <div>초대 코드로 참여</div>;
 
 const App = () => {
   return (
