@@ -1,37 +1,47 @@
 :root {
   --primary-color: #BBD66F;
   --secondary-color: #4563B0;
-  --tertiary-color: #BF1041
+  --tertiary-color: #BF1041;
   --text-primary: #000000;
   --text-secondary: #ffffff;
-}
-
-.button-primary {
-  background-color: var(--primary-color);
-}
-
-.button-tertiary {
-  background-color: var(--tertiary-color);
 }
 
 .App {
   width: 100%;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: flex-start; 
+  flex-direction: column;
+  align-items: center;
   background-color: #333333;
 }
 
 .App-content {
   width: 100%;
   max-width: 412px;
-  background-color: #ffffff; 
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+  background-color: #F9F9FB;
+  padding: 0; 
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   min-height: 100vh;
   box-sizing: border-box;
-  display: flex; 
-  flex-direction: column;
-  align-items: center; 
+  padding-top: 40px;
+}
+
+.Header-Container {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 100%;
+  max-width: 412px;
+}
+
+.TabBar-Container {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 100%;
+  max-width: 412px;
 }

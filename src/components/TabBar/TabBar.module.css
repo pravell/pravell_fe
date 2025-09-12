@@ -1,0 +1,56 @@
+.tabBarContainer {
+    position: relative;
+    width: 100%;
+    height: 85px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    background-color: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    box-sizing: border-box;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: 0;
+  }
+  
+  .tabItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    height: 100%;
+    width: 33.33%;
+    justify-content: center;
+  }
+  
+  .tabLabel {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 10px;
+    color: #000000;
+    margin-top: 4px;
+  }
+  
+  .tabItem.active .tabLabel {
+    color: var(--primary-color);
+  }
+  
+  .activeBar {
+    position: absolute;
+    top: 0;
+    width: 66px;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .tabItem.active .activeBar {
+    transform: scaleX(1);
+  }
+  
+  .tabIcon {
+    height: 50px;
+  }

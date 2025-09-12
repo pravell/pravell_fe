@@ -1,0 +1,84 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #ffffff;
+  padding: 25px 20px;
+  border-radius: 15px;
+  width: 80%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #999999;
+  cursor: pointer;
+  padding: 0;
+}
+
+.emoji {
+  width: 100px;
+  /* height: 50px; */
+  margin-bottom: px;
+}
+
+.modalTitle {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 25px;
+}
+
+.createPlanButton,
+.inviteCodeButton {
+  width: 100%;
+  padding: 15px 0;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.createPlanButton {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  border: none;
+}
+
+.createPlanButton:hover {
+  background-color: #a4be5a;
+}
+
+.inviteCodeButton {
+  background-color: #eeeeee;
+  color: #333333;
+  border: 1px solid #dddddd;
+}
+
+.inviteCodeButton:hover {
+  background-color: #dddddd;
+}
