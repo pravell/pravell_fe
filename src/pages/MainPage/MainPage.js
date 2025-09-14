@@ -61,7 +61,7 @@ const MainPage = () => {
   };
 
   const handlePlanClick = (planId) => {
-    navigate(`/plan/${planId}/map`);
+    navigate(`/plan/${planId}`);
   };
 
   const getPlanStatus = (startDate, endDate) => {

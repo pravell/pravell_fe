@@ -9,6 +9,7 @@ import JoinByCodePage from './pages/JoinByCodePage/JoinbyCodePage';
 import MapPage from './pages/MapPage/MapPage';
 import MyPage from './pages/MyPage/MyPage';
 import ChangeNicknamePage from './pages/MyPage/ChangeNicknamePage';
+import PlanDetailPage from './pages/PlanDetailPage/PlanDetailPage';
 import './App.css';
 
 const App = () => {
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/join-by-code" element={<JoinByCodePage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/change-nickname" element={<ChangeNicknamePage />} />
+            <Route path="/plan/:planId" element = {<PlanDetailPage />} /> 
           </Routes>
         </div>
         <TabBarController />
