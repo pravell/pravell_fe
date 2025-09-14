@@ -1,5 +1,6 @@
 :root {
   --tabbar-height: 85px;
+  --header-height: 60px;
 }
 
 /* ===== Layout ===== */
@@ -19,7 +20,7 @@
 /* ===== Search Bar ===== */
 .searchBar {
   position: absolute;
-  top: 20px;
+  top: calc(var(--header-height) + 12px);
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
@@ -56,7 +57,7 @@
 /* ===== Locate Me Button ===== */
 .locateButton {
   position: absolute;
-  top: 92px;
+  top: calc(var(--header-height) + 72px);
   left: calc(5% + 4px);
   width: 44px;
   height: 44px;
@@ -71,13 +72,13 @@
   z-index: 12;
 }
 .locateIcon {
-    width: 50px;
-  }
+  width: 50px;
+}
 
 /* ===== Legend ===== */
 .legend {
   position: absolute;
-  top: 92px;
+  top: calc(var(--header-height) + 72px);
   right: calc(5% + 4px);
   background: #fff;
   border-radius: 10px;

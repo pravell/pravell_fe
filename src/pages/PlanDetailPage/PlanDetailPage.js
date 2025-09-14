@@ -5,7 +5,7 @@ import React, {
   useState,
   useMemo,
 } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import styles from "./PlanDetailPage.module.css";
 import axios from "axios";
 import usePlanData from "./hooks/usePlanData";
@@ -14,9 +14,17 @@ import PlaceList from "./components/PlaceList";
 import PlaceDetail from "./components/PlaceDetail";
 import LegendBox from "./components/LegendBox";
 import SearchResultList from "./components/SearchResultList";
+import PlanDetailHeader from "./components/PlanDetailHeader";
 
 export default function PlanDetailPage() {
   const { planId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [planTitle, setPlanTitle] = useState(
+    location.state?.planTitle || location.state?.planName || "플랜 상세"
+  );
+
   const [keyword, setKeyword] = useState("");
   const [activeTab, setActiveTab] = useState("places");
   const [collapsed, setCollapsed] = useState(true);
@@ -66,6 +74,21 @@ export default function PlanDetailPage() {
   }, [legend]);
 
   useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+        const url = `${process.env.REACT_APP_API_URL}/v1/plans/${planId}`;
+        const { data } = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const name = data?.planName || data?.title || null;
+        if (name) setPlanTitle(name);
+      } catch {}
+    })();
+  }, [planId]);
+
+  useEffect(() => {
     const load = () =>
       new Promise((resolve, reject) => {
         if (window.naver?.maps) return resolve();
@@ -96,6 +119,20 @@ export default function PlanDetailPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+        const url = `${process.env.REACT_APP_API_URL}/v1/plans/${planId}`;
+        const { data } = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (data?.title) setPlanTitle(data.title);
+      } catch {}
+    })();
+  }, [planId]);
+
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
@@ -115,15 +152,15 @@ export default function PlanDetailPage() {
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
         const color = p.pinColor || p.pin_color || "#93D3E7";
         const markerHtml = `
-          <div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto;">
-            <div style="background:${color};width:18px;height:18px;border-radius:50%;
-                        border:2px solid #EEF2BA;box-shadow:0 0 4px rgba(0,0,0,.2);"></div>
-            <div style="margin-top:4px;font-size:11px;color:#444;white-space:nowrap;">
-              ${(p.nickname || p.title || "")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")}
-            </div>
-          </div>`;
+            <div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto;">
+              <div style="background:${color};width:18px;height:18px;border-radius:50%;
+                          border:2px solid #EEF2BA;box-shadow:0 0 4px rgba(0,0,0,.2);"></div>
+              <div style="margin-top:4px;font-size:11px;color:#444;white-space:nowrap;">
+                ${(p.nickname || p.title || "")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")}
+              </div>
+            </div>`;
         const marker = new window.naver.maps.Marker({
           position: new window.naver.maps.LatLng(lat, lng),
           map: mapInstance.current,
@@ -468,6 +505,12 @@ export default function PlanDetailPage() {
 
   return (
     <div className={styles.container}>
+      <PlanDetailHeader
+        title={planTitle}
+        isLoggedIn={false}
+        onClickSettings={() => navigate(`/plan/${planId}/settings`)}
+      />
+
       <div className={styles.searchBar}>
         <input
           type="text"
