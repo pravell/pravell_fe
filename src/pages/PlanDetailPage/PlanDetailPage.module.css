@@ -301,6 +301,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  margin-bottom: 20px;
 }
 .itemTitleMain {
   font-size: 18px;
@@ -347,7 +348,7 @@
 }
 
 .hoursBlock {
-  margin-top: 6px;
+  margin-top: 15px;
 }
 .hoursList {
   margin-top: 2px;
@@ -370,7 +371,7 @@
 
 /* ===== Misc ===== */
 .memo {
-  margin-top: 10px;
+  margin: 20px 0px;
   background: #eef6d8;
   padding: 10px 12px;
   border-radius: 10px;
