@@ -1,27 +1,43 @@
-import React from 'react';
-import styles from '../PlanDetailPage.module.css';
+import React from "react";
+import styles from "../PlanDetailPage.module.css";
 
-const dayKo = { Monday:'월', Tuesday:'화', Wednesday:'수', Thursday:'목', Friday:'금', Saturday:'토', Sunday:'일' };
+const dayKo = {
+  Monday: "월",
+  Tuesday: "화",
+  Wednesday: "수",
+  Thursday: "목",
+  Friday: "금",
+  Saturday: "토",
+  Sunday: "일",
+};
 
 export default function PlaceList({ places, keyword, onSelect }) {
   const q = keyword.trim().toLowerCase();
   const filtered = q
-    ? places.filter(p =>
-        (p.nickname||p.title||'').toLowerCase().includes(q) ||
-        (p.address||'').toLowerCase().includes(q) ||
-        (p.roadAddress||p.roadAddredd||'').toLowerCase().includes(q)
+    ? places.filter(
+        (p) =>
+          (p.title || "").toLowerCase().includes(q) ||
+          (p.nickname || "").toLowerCase().includes(q) ||
+          (p.address || "").toLowerCase().includes(q) ||
+          (p.roadAddress || p.roadAddredd || "").toLowerCase().includes(q)
       )
     : places;
 
   return (
     <div className={styles.list}>
-      {filtered.map(p => {
-        const displayName = p.nickname || p.title || '';
-        const road = p.roadAddress || p.roadAddredd || '';
+      {filtered.map((p) => {
+        const mainTitle = p.title || p.nickname || "이름 없음";
+        const subNick = p.title ? p.nickname : ""; // title이 없을 땐 중복 방지
+        const road = p.roadAddress || p.roadAddredd || "";
+
         return (
           <div key={p.id} className={styles.item} onClick={() => onSelect(p)}>
             <div className={styles.itemHeader}>
-              <h3 className={styles.itemTitle}>{displayName}</h3>
+              <div className={styles.itemHeaderText}>
+                <h3 className={styles.itemTitleMain}>{mainTitle}</h3>
+                {subNick ? <div className={styles.itemNick}>{subNick}</div> : null}
+              </div>
+
               {p.mapUrl && (
                 <a
                   href={p.mapUrl}
@@ -52,9 +68,14 @@ export default function PlaceList({ places, keyword, onSelect }) {
               <div className={styles.hoursBlock}>
                 <div className={styles.rowLabel}>영업 시간</div>
                 <div className={styles.hoursList}>
-                  {p.hours.map((h,i) => {
-                    if (h==='정보 없음') return <div key={i} className={styles.hourLine}>정보 없음</div>;
-                    const [d, t=''] = String(h).split(': ');
+                  {p.hours.map((h, i) => {
+                    if (h === "정보 없음")
+                      return (
+                        <div key={i} className={styles.hourLine}>
+                          정보 없음
+                        </div>
+                      );
+                    const [d, t = ""] = String(h).split(": ");
                     return (
                       <div key={i} className={styles.hourLine}>
                         <span className={styles.hourDay}>{dayKo[d] ?? d}</span>
@@ -70,7 +91,9 @@ export default function PlaceList({ places, keyword, onSelect }) {
           </div>
         );
       })}
-      {filtered.length === 0 && <div className={styles.empty}>저장된 장소가 없습니다.</div>}
+      {filtered.length === 0 && (
+        <div className={styles.empty}>저장된 장소가 없습니다.</div>
+      )}
     </div>
   );
 }
