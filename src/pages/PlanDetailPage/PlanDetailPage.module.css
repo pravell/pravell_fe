@@ -71,9 +71,8 @@
   z-index: 12;
 }
 .locateIcon {
-  width: 24px;
-  height: 24px;
-}
+    width: 50px;
+  }
 
 /* ===== Legend ===== */
 .legend {
