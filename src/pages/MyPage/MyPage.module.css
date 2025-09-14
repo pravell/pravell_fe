@@ -1,0 +1,98 @@
+.myPageContainer {
+    padding: 20px;
+    box-sizing: border-box;
+    min-height: calc(100vh - 110px);
+    margin-top: 64px;
+  }
+  
+  .loading {
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  .profileContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    margin : 20px 10px;
+  }
+  
+  .userInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .infoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .infoLabel {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+  }
+  
+  .infoValue {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #888888;
+  }
+  
+  .accountSection {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .sectionTitle {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
+    margin: 0;
+  }
+  
+  .menuList {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .menuItem {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #000000;
+    padding: 15px 0;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+  }
+  
+  .authContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  .characterImage {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .messageText {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #000000;
+    margin: 0;
+  }

@@ -45,7 +45,7 @@ const MapPage = () => {
 
     const SEC_COLOR =
       getComputedStyle(document.documentElement)
-        .getPropertyValue('--secondary-color')
+        .getPropertyValue('--quaternary-color')
         .trim() || '#4563B0';
 
     navigator.geolocation.getCurrentPosition(
@@ -127,8 +127,8 @@ const MapPage = () => {
 
       const markerHtml = `
         <div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto;">
-          <div style="background:#BBD66F;width:18px;height:18px;border-radius:50%;
-                       border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.2);"></div>
+          <div style="background:#93D3E7;width:18px;height:18px;border-radius:50%;
+                       border:2px solid #EEF2BA;box-shadow:0 0 4px rgba(0,0,0,.2);"></div>
           <div style="margin-top:4px;font-size:11px;color:#444;white-space:nowrap;">
             ${p.title ?? ''}
           </div>

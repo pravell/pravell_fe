@@ -73,7 +73,7 @@
 }
 
 .inviteCodeButton {
-  background-color: #eeeeee;
+  background-color: var(--secondary-color);
   color: #333333;
   border: 1px solid #dddddd;
 }
