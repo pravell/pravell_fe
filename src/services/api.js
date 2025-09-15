@@ -13,7 +13,8 @@ export const getAccessToken = () => localStorage.getItem(ACCESS_KEY) || "";
 export const getRefreshToken = () => localStorage.getItem(REFRESH_KEY) || "";
 export const setTokens = ({ accessToken, refreshToken }) => {
   if (accessToken) localStorage.setItem(ACCESS_KEY, stripBearer(accessToken));
-  if (refreshToken) localStorage.setItem(REFRESH_KEY, stripBearer(refreshToken));
+  if (refreshToken)
+    localStorage.setItem(REFRESH_KEY, stripBearer(refreshToken));
 };
 export const clearTokens = () => {
   localStorage.removeItem(ACCESS_KEY);
@@ -123,6 +124,12 @@ export const leavePlans = (planIds, token) =>
 
 export const createInviteCode = (planId, token) =>
   API.post(`/v1/plans/${planId}/invite-code`, {}, authHeader(token));
+
+export const getRoutesByPlan = (planId, token) =>
+  API.get(`/v1/routes/${planId}`, authHeader(token));
+
+export const createRoute = (payload, token) =>
+  API.post(`/v1/routes`, payload, authHeader(token));
 
 export const parseApiError = (err) => {
   const status = err?.response?.status;

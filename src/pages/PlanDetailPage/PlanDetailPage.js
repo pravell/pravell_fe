@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styles from "./PlanDetailPage.module.css";
-import axios from "axios";
 import usePlanData from "./hooks/usePlanData";
 import { parseMapCoord, flyTo } from "./utils/utils";
 import PlaceList from "./components/PlaceList";
@@ -18,6 +17,9 @@ import PlanDetailHeader from "./components/PlanDetailHeader";
 import SearchBar from "./components/SearchBar";
 import useMapAndMarkers from "./hooks/useMapAndMarkers";
 import usePlanTitle from "./hooks/usePlanTitle";
+import RouteList from "./components/RouteList";
+import CreateRouteModal from "./components/CreateRouteModal";
+import useRoutes from "./hooks/useRoutes";
 import {
   getPlanPlaces,
   getPlaceDetail,
@@ -35,7 +37,7 @@ export default function PlanDetailPage() {
 
   const initialTitle =
     location.state?.planTitle || location.state?.planName || "플랜 상세";
-  const { planTitle, setPlanTitle, fetchPlanTitle } = usePlanTitle({
+  const { planTitle, fetchPlanTitle } = usePlanTitle({
     planId,
     initialTitle,
     navigate,
@@ -54,8 +56,15 @@ export default function PlanDetailPage() {
     firstPlaceLatLng,
     replacePlace,
   } = usePlanData(planId);
-
   const { mapRef, mapInstance, addMarkers, locateMe } = useMapAndMarkers();
+
+  const {
+    routes,
+    loadRoutes,
+    create: createRoute,
+    creating,
+  } = useRoutes(planId, navigate);
+  const [openCreate, setOpenCreate] = useState(false);
 
   const [detailId, setDetailId] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -65,7 +74,7 @@ export default function PlanDetailPage() {
   const [editingPlace, setEditingPlace] = useState(false);
   const [form, setForm] = useState({
     nickname: "",
-    pinColor: "#93D3E7",
+    pinColor: "var(--secondary-color)",
     description: "",
   });
   const [saving, setSaving] = useState(false);
@@ -161,6 +170,17 @@ export default function PlanDetailPage() {
   }, [activeTab, searchResults, addMarkers]);
 
   useEffect(() => {
+    if (activeTab === "route") {
+      setCollapsed(false);
+      loadRoutes();
+    }
+  }, [activeTab, loadRoutes]);
+
+  useEffect(() => {
+    if (openCreate) setCollapsed(false);
+  }, [openCreate]);
+
+  useEffect(() => {
     if (firstPlaceLatLng && mapInstance.current && activeTab !== "search") {
       flyTo(
         mapInstance.current,
@@ -213,7 +233,6 @@ export default function PlanDetailPage() {
     if (!detail) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
-
     const payload = {};
     const nick = (form.nickname ?? "").trim();
     if (nick !== (detail.nickname ?? "")) {
@@ -238,7 +257,6 @@ export default function PlanDetailPage() {
       setEditingPlace(false);
       return;
     }
-
     try {
       setSaving(true);
       const { data } = await patchPlace(detail.id, payload, token);
@@ -259,7 +277,6 @@ export default function PlanDetailPage() {
     if (!detail) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
-
     try {
       setDeleting(true);
       await deletePlaces([detail.id], token);
@@ -279,7 +296,7 @@ export default function PlanDetailPage() {
     if (!editingPlace || !detail) return;
     setForm({
       nickname: detail.nickname ?? "",
-      pinColor: detail.pin_color || detail.pinColor || "#93D3E7",
+      pinColor: detail.pin_color || detail.pinColor || "var(--secondary-color)",
       description: detail.description ?? "",
     });
   }, [editingPlace, detail]);
@@ -331,7 +348,6 @@ export default function PlanDetailPage() {
   ) => {
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
-
     const title = place.title;
     const address = place.address;
     const roadAddress = place.roadAddress;
@@ -340,22 +356,18 @@ export default function PlanDetailPage() {
     const lat = parseMapCoord(place.mapy) ?? parseFloat(place.lat);
     const lng = parseMapCoord(place.mapx) ?? parseFloat(place.lng);
     const pinColor = colorHex;
-
     if (!title || !address || !roadAddress || !mapx || !mapy)
       return alert("필수 정보가 부족해 저장할 수 없습니다.");
     if (!Number.isFinite(lat) || !Number.isFinite(lng))
       return alert("좌표 정보가 올바르지 않습니다.");
     if (!/^#[0-9A-Fa-f]{6}$/.test(pinColor))
       return alert("올바른 핀 색상이 아닙니다.");
-
     const nickTrim = (nickname ?? "").trim();
     if (nickTrim && (nickTrim.length < 2 || nickTrim.length > 30))
       return alert("nickname은 2~30자여야 합니다.");
-
     const descTrim = (description ?? "").trim();
     if (descTrim && (descTrim.length < 2 || descTrim.length > 255))
       return alert("description은 2~255자여야 합니다.");
-
     const payload = {
       placeId: place.placeId ?? place.id,
       nickname: nickTrim || null,
@@ -375,7 +387,6 @@ export default function PlanDetailPage() {
       planId,
       description: descTrim || null,
     };
-
     try {
       setSavingSearchId(place.placeId ?? place.id);
       await savePlaceToPlan(payload, token);
@@ -399,6 +410,7 @@ export default function PlanDetailPage() {
     else if (d < -50) setCollapsed(false);
   };
 
+  const expanded = activeTab === "route" || openCreate;
   return (
     <div className={styles.container}>
       <PlanDetailHeader
@@ -427,6 +439,7 @@ export default function PlanDetailPage() {
 
       <div
         className={`${styles.sheet} ${collapsed ? styles.sheetCollapsed : ""}`}
+        style={expanded ? { maxHeight: "82vh" } : undefined}
         onMouseDown={onDragStart}
         onMouseUp={onDragEnd}
         onTouchStart={onDragStart}
@@ -522,9 +535,19 @@ export default function PlanDetailPage() {
             savingId={savingSearchId}
           />
         ) : (
-          <div className={styles.routePlaceholder}>
-            루트 기능은 준비 중입니다.
-          </div>
+          <>
+            <RouteList routes={routes} onAdd={() => setOpenCreate(true)} />
+            <CreateRouteModal
+              open={openCreate}
+              onClose={() => setOpenCreate(false)}
+              onSubmit={async (name, desc) => {
+                await createRoute(name, desc);
+                setOpenCreate(false);
+                loadRoutes();
+              }}
+              creating={creating}
+            />
+          </>
         )}
       </div>
     </div>

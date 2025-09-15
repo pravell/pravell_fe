@@ -235,6 +235,10 @@
   transition: max-height 0.25s ease;
   z-index: 2000;
 }
+.sheetExpanded {
+  height: 82vh;
+  max-height: 92vh;
+}
 .sheetCollapsed {
   max-height: 64px;
   overflow: hidden;
@@ -564,4 +568,92 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+}
+
+.routeWrap {
+  padding: 8px 14px 16px;
+}
+.routeList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.routeItem {
+  padding: 14px 4px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+.routeName {
+  font-weight: 700;
+}
+.routeMeta {
+  font-size: 12px;
+  color: #777;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.routeEmpty {
+  padding: 20px 6px;
+  color: #999;
+}
+.addRouteBtn {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modalCard {
+  width: 88%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+}
+.modalTitle {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+.modalInput {
+  width: 90%;
+  height: 40px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 0 10px;
+  margin-top: 8px;
+}
+.modalActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.modalCancel {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: #000;
+  color: var(--text-secondary);
+}
+.modalConfirm {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--secondary-color);
+  color: var(--text-secondary);
+  font-weight: 700;
 }
