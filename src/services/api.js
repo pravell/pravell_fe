@@ -2,11 +2,91 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
+  withCredentials: true,
 });
 
-const authHeader = (token) => ({
-  headers: { Authorization: `Bearer ${token}` },
+const ACCESS_KEY = "accessToken";
+const REFRESH_KEY = "refreshToken";
+const stripBearer = (t = "") => t.replace(/^Bearer\s+/i, "");
+
+export const getAccessToken = () => localStorage.getItem(ACCESS_KEY) || "";
+export const getRefreshToken = () => localStorage.getItem(REFRESH_KEY) || "";
+export const setTokens = ({ accessToken, refreshToken }) => {
+  if (accessToken) localStorage.setItem(ACCESS_KEY, stripBearer(accessToken));
+  if (refreshToken) localStorage.setItem(REFRESH_KEY, stripBearer(refreshToken));
+};
+export const clearTokens = () => {
+  localStorage.removeItem(ACCESS_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+};
+
+API.interceptors.request.use((config) => {
+  const at = getAccessToken();
+  if (at) config.headers.Authorization = `Bearer ${stripBearer(at)}`;
+  return config;
 });
+
+let isRefreshing = false;
+let queue = [];
+
+const processQueue = (error, token = null) => {
+  queue.forEach((p) => {
+    if (error) p.reject(error);
+    else p.resolve(token);
+  });
+  queue = [];
+};
+
+API.interceptors.response.use(
+  (r) => r,
+  async (error) => {
+    const original = error.config;
+    const status = error?.response?.status;
+    if (status === 401 && !original._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          queue.push({
+            resolve: (token) => {
+              original.headers.Authorization = `Bearer ${token}`;
+              resolve(API(original));
+            },
+            reject,
+          });
+        });
+      }
+      original._retry = true;
+      isRefreshing = true;
+      try {
+        const curAccess = getAccessToken();
+        const { data } = await axios.post(
+          `${process.env.REACT_APP_API_URL}/v1/auth/refresh`,
+          {},
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${stripBearer(curAccess)}` },
+          }
+        );
+        const newAccess = stripBearer(data?.access_token || "");
+        const newRefresh = stripBearer(data?.refresh_token || "");
+        setTokens({ accessToken: newAccess, refreshToken: newRefresh });
+        API.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
+        original.headers.Authorization = `Bearer ${newAccess}`;
+        processQueue(null, newAccess);
+        return API(original);
+      } catch (e) {
+        processQueue(e, null);
+        clearTokens();
+        return Promise.reject(e);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+const authHeader = (token) =>
+  token ? { headers: { Authorization: `Bearer ${stripBearer(token)}` } } : {};
 
 export const getPlan = (planId, token) =>
   API.get(`/v1/plans/${planId}`, authHeader(token));
@@ -46,8 +126,9 @@ export const createInviteCode = (planId, token) =>
 
 export const parseApiError = (err) => {
   const status = err?.response?.status;
-  const data = err?.response?.data;
-  const code = data?.code ?? data?.errorCode ?? data?.error;
-  const message = data?.message ?? data?.error ?? err?.message;
+  const code = err?.response?.data?.code;
+  const message = err?.response?.data?.message;
   return { status, code, message };
 };
+
+export default API;
