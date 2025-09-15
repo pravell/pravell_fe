@@ -1,11 +1,11 @@
 import React, {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
-  useMemo,
 } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styles from "./PlanDetailPage.module.css";
 import axios from "axios";
 import usePlanData from "./hooks/usePlanData";
@@ -15,15 +15,31 @@ import PlaceDetail from "./components/PlaceDetail";
 import LegendBox from "./components/LegendBox";
 import SearchResultList from "./components/SearchResultList";
 import PlanDetailHeader from "./components/PlanDetailHeader";
+import SearchBar from "./components/SearchBar";
+import useMapAndMarkers from "./hooks/useMapAndMarkers";
+import usePlanTitle from "./hooks/usePlanTitle";
+import {
+  getPlanPlaces,
+  getPlaceDetail,
+  searchPlaces as apiSearchPlaces,
+  savePlaceToPlan,
+  patchPlace,
+  deletePlaces,
+  parseApiError,
+} from "../../services/api";
 
 export default function PlanDetailPage() {
   const { planId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [planTitle, setPlanTitle] = useState(
-    location.state?.planTitle || location.state?.planName || "플랜 상세"
-  );
+  const initialTitle =
+    location.state?.planTitle || location.state?.planName || "플랜 상세";
+  const { planTitle, setPlanTitle, fetchPlanTitle } = usePlanTitle({
+    planId,
+    initialTitle,
+    navigate,
+  });
 
   const [keyword, setKeyword] = useState("");
   const [activeTab, setActiveTab] = useState("places");
@@ -37,14 +53,9 @@ export default function PlanDetailPage() {
     setLegend,
     firstPlaceLatLng,
     replacePlace,
-    removePlace,
   } = usePlanData(planId);
 
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
-  const markersRef = useRef([]);
-  const myMarkerRef = useRef(null);
-  const centeredOnce = useRef(false);
+  const { mapRef, mapInstance, addMarkers, locateMe } = useMapAndMarkers();
 
   const [detailId, setDetailId] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -73,112 +84,73 @@ export default function PlanDetailPage() {
     return dedup.length ? dedup : ["#93D3E7", "#C0D86E", "#61EB52", "#F54927"];
   }, [legend]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) return;
-        const url = `${process.env.REACT_APP_API_URL}/v1/plans/${planId}`;
-        const { data } = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const name = data?.planName || data?.title || null;
-        if (name) setPlanTitle(name);
-      } catch {}
-    })();
-  }, [planId]);
-
-  useEffect(() => {
-    const load = () =>
-      new Promise((resolve, reject) => {
-        if (window.naver?.maps) return resolve();
-        const script = document.createElement("script");
-        script.src = `${process.env.REACT_APP_NAVER_MAP_API}${process.env.REACT_APP_NAVER_MAP_CLIENT_ID}`;
-        script.async = true;
-        script.onload = () => {
-          const t = setInterval(() => {
-            if (window.naver?.maps) {
-              clearInterval(t);
-              resolve();
-            }
-          }, 100);
-        };
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    const init = () => {
-      if (!mapRef.current) return;
-      mapInstance.current = new window.naver.maps.Map(mapRef.current, {
-        center: new window.naver.maps.LatLng(37.5665, 126.978),
-        zoom: 12,
-      });
-      setTimeout(() => locateMe({ initial: true }), 0);
-    };
-    load()
-      .then(init)
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) return;
-        const url = `${process.env.REACT_APP_API_URL}/v1/plans/${planId}`;
-        const { data } = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (data?.title) setPlanTitle(data.title);
-      } catch {}
-    })();
-  }, [planId]);
-
-  const clearMarkers = useCallback(() => {
-    markersRef.current.forEach((m) => m.setMap(null));
-    markersRef.current = [];
-    if (myMarkerRef.current && mapInstance.current) {
-      myMarkerRef.current.setMap(mapInstance.current);
-      myMarkerRef.current.setZIndex(9999);
+  const refreshPlanPlaces = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
     }
-  }, []);
-
-  const addMarkers = useCallback(
-    (list) => {
-      if (!window.naver || !mapInstance.current) return;
-      clearMarkers();
-      list.forEach((p) => {
-        const lat = Number.isFinite(p.lat) ? p.lat : parseMapCoord(p.mapy);
-        const lng = Number.isFinite(p.lng) ? p.lng : parseMapCoord(p.mapx);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-        const color = p.pinColor || p.pin_color || "#93D3E7";
-        const markerHtml = `
-            <div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto;">
-              <div style="background:${color};width:18px;height:18px;border-radius:50%;
-                          border:2px solid #EEF2BA;box-shadow:0 0 4px rgba(0,0,0,.2);"></div>
-              <div style="margin-top:4px;font-size:11px;color:#444;white-space:nowrap;">
-                ${(p.nickname || p.title || "")
-                  .replace(/</g, "&lt;")
-                  .replace(/>/g, "&gt;")}
-              </div>
-            </div>`;
-        const marker = new window.naver.maps.Marker({
-          position: new window.naver.maps.LatLng(lat, lng),
-          map: mapInstance.current,
-          icon: {
-            content: markerHtml,
-            anchor: new window.naver.maps.Point(9, 9),
-          },
-          zIndex: 100,
-        });
-        markersRef.current.push(marker);
-      });
-      if (myMarkerRef.current && mapInstance.current) {
-        myMarkerRef.current.setMap(mapInstance.current);
-        myMarkerRef.current.setZIndex(9999);
+    try {
+      const { data } = await getPlanPlaces(planId, token);
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+      setPlaces(
+        list.map((p) => ({
+          ...p,
+          lat: Number.isFinite(p.lat) ? p.lat : parseMapCoord(p.mapy),
+          lng: Number.isFinite(p.lng) ? p.lng : parseMapCoord(p.mapx),
+        }))
+      );
+      if (list.length) addMarkers(list);
+    } catch (err) {
+      const { status, code, message } = parseApiError(err);
+      if (status === 401) {
+        localStorage.removeItem("accessToken");
+        alert("토큰이 올바르지 않습니다. 다시 로그인해 주세요.");
+        navigate("/login");
+        return;
       }
-    },
-    [clearMarkers]
-  );
+      if (status === 403) {
+        alert("해당 리소스에 접근 할 권한이 없습니다.");
+        navigate(-1);
+        return;
+      }
+      if (status === 404) {
+        if (
+          code === "Plan Not Found" ||
+          /Plan Not Found/i.test(message ?? "")
+        ) {
+          alert("플랜을 찾을 수 없습니다.");
+          navigate(-1);
+          return;
+        }
+        if (
+          code === "User Not Found" ||
+          /User Not Found/i.test(message ?? "")
+        ) {
+          alert("유저를 찾을 수 없습니다. 다시 로그인해 주세요.");
+          navigate("/login");
+          return;
+        }
+        alert(message ?? "리소스를 찾을 수 없습니다.");
+        return;
+      }
+      if (status === 500) {
+        alert("서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+      alert(message ?? "장소 목록을 불러오지 못했습니다.");
+    }
+  }, [planId, navigate, setPlaces, addMarkers]);
+
+  useEffect(() => {
+    fetchPlanTitle();
+    refreshPlanPlaces();
+  }, [fetchPlanTitle, refreshPlanPlaces]);
 
   useEffect(() => {
     if (activeTab !== "search" && places.length) addMarkers(places);
@@ -197,91 +169,37 @@ export default function PlanDetailPage() {
         15
       );
     }
-  }, [firstPlaceLatLng, activeTab]);
+  }, [firstPlaceLatLng, activeTab, mapInstance]);
 
-  const locateMe = ({ initial = false } = {}) => {
-    if (!navigator.geolocation || !mapInstance.current) {
-      if (!initial) alert("위치 서비스를 사용할 수 없습니다.");
-      return;
-    }
-    if (initial && centeredOnce.current) return;
-    const color =
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--quinary-color")
-        .trim() || "#4563B0";
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const { latitude, longitude } = coords;
-        const latlng = new window.naver.maps.LatLng(latitude, longitude);
-        const myIcon = {
-          content: `<div style="width:20px;height:20px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.25)"></div>`,
-          anchor: new window.naver.maps.Point(10, 10),
-        };
-        if (myMarkerRef.current) {
-          myMarkerRef.current.setPosition(latlng);
-          myMarkerRef.current.setIcon(myIcon);
-        } else {
-          myMarkerRef.current = new window.naver.maps.Marker({
-            position: latlng,
-            map: mapInstance.current,
-            icon: myIcon,
-            zIndex: 9999,
-          });
-        }
-        flyTo(mapInstance.current, latitude, longitude, 17);
-        centeredOnce.current = true;
-      },
-      () => {
-        if (!initial)
-          alert("현재 위치를 가져올 수 없습니다. 위치 권한을 확인해 주세요.");
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  };
-
-  const detailAbortRef = useRef(null);
-  const detailInflight = useRef(false);
-
-  const handleSelectPlace = useCallback((p) => {
-    const lat = Number.isFinite(p.lat) ? p.lat : parseMapCoord(p.mapy);
-    const lng = Number.isFinite(p.lng) ? p.lng : parseMapCoord(p.mapx);
-    if (Number.isFinite(lat) && Number.isFinite(lng) && mapInstance.current) {
-      flyTo(mapInstance.current, lat, lng, 16);
-    }
-    setCollapsed(false);
-    setDetailOpen(true);
-    setDetail(null);
-    setEditingPlace(false);
-    setShowDeleteConfirm(false);
-    setDetailId(p.id ?? p.placeId);
-  }, []);
+  const handleSelectPlace = useCallback(
+    (p) => {
+      const lat = Number.isFinite(p.lat) ? p.lat : parseMapCoord(p.mapy);
+      const lng = Number.isFinite(p.lng) ? p.lng : parseMapCoord(p.mapx);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && mapInstance.current) {
+        flyTo(mapInstance.current, lat, lng, 16);
+      }
+      setCollapsed(false);
+      setDetailOpen(true);
+      setDetail(null);
+      setEditingPlace(false);
+      setShowDeleteConfirm(false);
+      setDetailId(p.id ?? p.placeId);
+    },
+    [mapInstance]
+  );
 
   useEffect(() => {
     if (!detailOpen || !detailId) return;
-    if (detailInflight.current) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return;
-    detailInflight.current = true;
     setDL(true);
-    detailAbortRef.current?.abort();
-    detailAbortRef.current = new AbortController();
-    axios
-      .get(`${process.env.REACT_APP_API_URL}/v1/places/${detailId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: detailAbortRef.current.signal,
-      })
+    getPlaceDetail(detailId, token)
       .then(({ data }) => setDetail(data))
       .catch((err) => {
-        if (!axios.isCancel(err)) {
-          alert(
-            err.response?.data?.message ?? "장소 상세를 불러오지 못했습니다."
-          );
-        }
+        const { message } = parseApiError(err);
+        alert(message ?? "장소 상세를 불러오지 못했습니다.");
       })
-      .finally(() => {
-        setDL(false);
-        detailInflight.current = false;
-      });
+      .finally(() => setDL(false));
   }, [detailOpen, detailId]);
 
   const closeDetail = useCallback(() => {
@@ -295,6 +213,7 @@ export default function PlanDetailPage() {
     if (!detail) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
+
     const payload = {};
     const nick = (form.nickname ?? "").trim();
     if (nick !== (detail.nickname ?? "")) {
@@ -319,26 +238,18 @@ export default function PlanDetailPage() {
       setEditingPlace(false);
       return;
     }
+
     try {
       setSaving(true);
-      const { data } = await axios.patch(
-        `${process.env.REACT_APP_API_URL}/v1/places/${detail.id}`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const { data } = await patchPlace(detail.id, payload, token);
       const normalized = { ...data, pinColor: data.pin_color ?? data.pinColor };
       setDetail(normalized);
       replacePlace(normalized);
-      addMarkers(
-        places.length
-          ? places.map((p) =>
-              p.id === normalized.id ? { ...p, ...normalized } : p
-            )
-          : []
-      );
       setEditingPlace(false);
+      await refreshPlanPlaces();
     } catch (e) {
-      alert(e.response?.data?.message ?? "장소 수정 실패");
+      const { message } = parseApiError(e);
+      alert(message ?? "장소 수정 실패");
     } finally {
       setSaving(false);
     }
@@ -348,18 +259,16 @@ export default function PlanDetailPage() {
     if (!detail) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
+
     try {
       setDeleting(true);
-      await axios.delete(`${process.env.REACT_APP_API_URL}/v1/places`, {
-        headers: { Authorization: `Bearer ${token}` },
-        data: { placeId: [detail.id] },
-      });
-      removePlace(detail.id);
+      await deletePlaces([detail.id], token);
       setDetailOpen(false);
       setDetail(null);
-      addMarkers(places.filter((p) => p.id !== detail.id));
+      await refreshPlanPlaces();
     } catch (e) {
-      alert(e.response?.data?.message ?? "장소 삭제 실패");
+      const { message } = parseApiError(e);
+      alert(message ?? "장소 삭제 실패");
     } finally {
       setDeleting(false);
       setShowDeleteConfirm(false);
@@ -376,37 +285,32 @@ export default function PlanDetailPage() {
   }, [editingPlace, detail]);
 
   const handleSearch = async () => {
-    if (!keyword.trim()) {
-      alert("검색 할 키워드를 입력하세요.");
-      return;
-    }
+    if (!keyword.trim()) return alert("검색 할 키워드를 입력하세요.");
     const token = localStorage.getItem("accessToken");
-    if (!token) {
-      alert("로그인이 필요합니다.");
-      return;
-    }
+    if (!token) return alert("로그인이 필요합니다.");
     try {
-      const { data } = await axios.get(
-        `${
-          process.env.REACT_APP_API_URL
-        }/v1/places/search?keyword=${encodeURIComponent(keyword)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const { data } = await apiSearchPlaces(keyword, token);
+      const list = Array.isArray(data) ? data : [];
+      setSearchResults(
+        list.map((f) => ({
+          ...f,
+          lat: parseMapCoord(f.mapy) ?? parseFloat(f.lat),
+          lng: parseMapCoord(f.mapx) ?? parseFloat(f.lng),
+        }))
       );
-      setSearchResults(Array.isArray(data) ? data : []);
       setActiveTab("search");
       setDetailOpen(false);
       setCollapsed(false);
-      if (Array.isArray(data) && data.length > 0) {
-        const f = data[0];
+      if (list.length > 0) {
+        const f = list[0];
         const lat = parseMapCoord(f.mapy) ?? parseFloat(f.lat);
         const lng = parseMapCoord(f.mapx) ?? parseFloat(f.lng);
         if (Number.isFinite(lat) && Number.isFinite(lng))
           flyTo(mapInstance.current, lat, lng, 15);
       }
     } catch (err) {
-      alert(
-        err.response?.data?.message ?? "네트워크/서버 오류가 발생했습니다."
-      );
+      const { message } = parseApiError(err);
+      alert(message ?? "네트워크/서버 오류가 발생했습니다.");
     }
   };
 
@@ -474,20 +378,12 @@ export default function PlanDetailPage() {
 
     try {
       setSavingSearchId(place.placeId ?? place.id);
-      await axios.post(`${process.env.REACT_APP_API_URL}/v1/places`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await savePlaceToPlan(payload, token);
       alert("저장되었습니다.");
-      try {
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_API_URL}/v1/places/plan/${planId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (Array.isArray(data)) setPlaces(data);
-        else if (Array.isArray(data?.data)) setPlaces(data.data);
-      } catch {}
+      await refreshPlanPlaces();
     } catch (e) {
-      alert(e.response?.data?.message ?? "저장에 실패했습니다.");
+      const { message } = parseApiError(e);
+      alert(message ?? "저장에 실패했습니다.");
     } finally {
       setSavingSearchId(null);
     }
@@ -511,27 +407,11 @@ export default function PlanDetailPage() {
         onClickSettings={() => navigate(`/plan/${planId}/settings`)}
       />
 
-      <div className={styles.searchBar}>
-        <input
-          type="text"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="검색 할 키워드를 입력하세요."
-          className={styles.searchInput}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-        />
-        <button
-          className={styles.searchBtn}
-          onClick={handleSearch}
-          aria-label="검색"
-        >
-          <img
-            src="/image/search-icon.png"
-            alt="검색"
-            className={styles.searchIcon}
-          />
-        </button>
-      </div>
+      <SearchBar
+        keyword={keyword}
+        setKeyword={setKeyword}
+        onSearch={handleSearch}
+      />
 
       <button
         className={styles.locateButton}
@@ -573,6 +453,7 @@ export default function PlanDetailPage() {
           >
             저장된 장소
           </button>
+
           <button
             className={`${styles.tab} ${
               activeTab === "route" ? styles.tabActive : ""
@@ -581,6 +462,7 @@ export default function PlanDetailPage() {
           >
             루트
           </button>
+
           {(searchResults.length > 0 || activeTab === "search") && (
             <button
               className={`${styles.tab} ${
