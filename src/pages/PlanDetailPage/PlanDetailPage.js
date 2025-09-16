@@ -445,6 +445,10 @@ export default function PlanDetailPage() {
       clearRouteOverlays();
       const naver = window.naver;
 
+      const Z_ROUTE_BASE = 10000;
+      const Z_ROUTE_LINE = Z_ROUTE_BASE - 10;
+      const Z_ROUTE_ARROW = Z_ROUTE_BASE - 5;
+
       const valid = (list || [])
         .filter((p) => !p.isPinPlaceDeleted)
         .map((p) => ({
@@ -475,7 +479,7 @@ export default function PlanDetailPage() {
           position: pos,
           map: mapInstance.current,
           icon: { content: html, anchor: new naver.maps.Point(12, 12) },
-          zIndex: 100,
+          zIndex: Z_ROUTE_BASE + idx,
         });
         markers.push(marker);
       });
@@ -490,7 +494,7 @@ export default function PlanDetailPage() {
           position: mid,
           map: mapInstance.current,
           icon: { content: arrowHtml, anchor: new naver.maps.Point(7, 7) },
-          zIndex: 90,
+          zIndex: Z_ROUTE_ARROW,
         });
         arrows.push(arrow);
       }
@@ -501,6 +505,7 @@ export default function PlanDetailPage() {
         strokeWeight: 3,
         strokeColor: "#777",
         strokeOpacity: 0.9,
+        zIndex: Z_ROUTE_LINE,
       });
 
       mapInstance.current.fitBounds(bounds, {
@@ -553,7 +558,7 @@ export default function PlanDetailPage() {
           sequence: Number(p.sequence ?? 0),
           date: p.date,
           address: p.address,
-          roadAddress: p.roadAddress || p.roadAddress,
+          roadAddress: p.roadAddress,
           mapx: p.mapx,
           mapy: p.mapy,
           lat: Number.isFinite(p.lat) ? Number(p.lat) : parseMapCoord(p.mapy),
@@ -737,7 +742,13 @@ export default function PlanDetailPage() {
             onBack={closeRouteDetail}
             onOpenPlace={openPlaceFromRoute}
             planId={planId}
-            onRefresh={() => selectedRoute && openRouteDetail(selectedRoute)}
+            onRefresh={(opts) => {
+              if (opts?.reopen && selectedRoute) {
+                openRouteDetail(selectedRoute);
+              } else {
+                loadRoutes();
+              }
+            }}
           />
         ) : (
           <>
