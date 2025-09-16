@@ -2,8 +2,13 @@ import React from "react";
 import styles from "../PlanDetailPage.module.css";
 
 const dayKo = {
-  Monday: "월", Tuesday: "화", Wednesday: "수",
-  Thursday: "목", Friday: "금", Saturday: "토", Sunday: "일",
+  Monday: "월",
+  Tuesday: "화",
+  Wednesday: "수",
+  Thursday: "목",
+  Friday: "금",
+  Saturday: "토",
+  Sunday: "일",
 };
 
 export default function PlaceDetail({
@@ -35,8 +40,12 @@ export default function PlaceDetail({
 
           {!editing && (
             <div className={styles.detailActions}>
-              <button className={styles.textBtn} onClick={() => setEditing(true)}>수정</button>
-              <button className={styles.textBtnDanger} onClick={() => setShowDeleteConfirm(true)}>삭제</button>
+              <button className={styles.textBtn} onClick={() => setEditing(true)}>
+                수정
+              </button>
+              <button className={styles.textBtnDanger} onClick={() => setShowDeleteConfirm(true)}>
+                삭제
+              </button>
             </div>
           )}
         </div>
@@ -51,7 +60,9 @@ export default function PlaceDetail({
         <div className={styles.inlineConfirm}>
           <span>정말 삭제할까요?</span>
           <div className={styles.inlineConfirmBtns}>
-            <button className={styles.legendCancelBtn} onClick={() => setShowDeleteConfirm(false)}>취소</button>
+            <button className={styles.legendCancelBtn} onClick={() => setShowDeleteConfirm(false)}>
+              취소
+            </button>
             <button className={styles.legendDelBtn} onClick={onDelete} disabled={deleting}>
               {deleting ? "삭제 중…" : "삭제"}
             </button>
@@ -105,7 +116,9 @@ export default function PlaceDetail({
           </div>
 
           <div className={styles.legendFormBtns}>
-            <button className={styles.legendCancelBtn} type="button" onClick={() => setEditing(false)}>취소</button>
+            <button className={styles.legendCancelBtn} type="button" onClick={() => setEditing(false)}>
+              취소
+            </button>
             <button className={styles.legendSaveBtn} type="button" onClick={onSave} disabled={saving}>
               {saving ? "저장 중…" : "저장"}
             </button>
@@ -157,7 +170,9 @@ export default function PlaceDetail({
           {detail.description && <div className={styles.memo}>{detail.description}</div>}
 
           <div style={{ marginTop: 12 }}>
-            <button className={styles.legendSaveBtn} onClick={onFlyTo}>지도에서 보기</button>
+            <button className={styles.legendSaveBtn} onClick={onFlyTo}>
+              지도에서 보기
+            </button>
           </div>
         </>
       )}

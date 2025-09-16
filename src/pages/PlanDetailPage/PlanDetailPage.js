@@ -7,20 +7,25 @@ import React, {
 } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styles from "./PlanDetailPage.module.css";
+
 import usePlanData from "./hooks/usePlanData";
-import { parseMapCoord, flyTo } from "./utils/utils";
-import PlaceList from "./components/PlaceList";
-import PlaceDetail from "./components/PlaceDetail";
-import LegendBox from "./components/LegendBox";
-import SearchResultList from "./components/SearchResultList";
-import PlanDetailHeader from "./components/PlanDetailHeader";
-import SearchBar from "./components/SearchBar";
 import useMapAndMarkers from "./hooks/useMapAndMarkers";
 import usePlanTitle from "./hooks/usePlanTitle";
+import useRoutes from "./hooks/useRoutes";
+
+import { parseMapCoord, flyTo } from "./utils/utils";
+
+import PlanDetailHeader from "./components/PlanDetailHeader";
+import SearchBar from "./components/SearchBar";
+import LegendBox from "./components/LegendBox";
+import PlaceList from "./components/PlaceList";
+import PlaceDetail from "./components/PlaceDetail";
+import SearchResultList from "./components/SearchResultList";
 import RouteList from "./components/RouteList";
 import CreateRouteModal from "./components/CreateRouteModal";
-import useRoutes from "./hooks/useRoutes";
+
 import RouteDetail from "./components/RouteDetail";
+
 import {
   getPlanPlaces,
   getPlaceDetail,
@@ -39,6 +44,7 @@ export default function PlanDetailPage() {
 
   const initialTitle =
     location.state?.planTitle || location.state?.planName || "플랜 상세";
+
   const { planTitle, fetchPlanTitle } = usePlanTitle({
     planId,
     initialTitle,
@@ -237,6 +243,7 @@ export default function PlanDetailPage() {
     if (!detail) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
+
     const payload = {};
     const nick = (form.nickname ?? "").trim();
     if (nick !== (detail.nickname ?? "")) {
@@ -244,6 +251,7 @@ export default function PlanDetailPage() {
         return alert("nickname은 2~30자");
       payload.nickname = nick || null;
     }
+
     const pin = form.pinColor ?? "";
     const originalPin = detail.pin_color || detail.pinColor || "";
     if (pin !== originalPin) {
@@ -251,16 +259,19 @@ export default function PlanDetailPage() {
         return alert("올바르지 않은 pin color");
       payload.pinColor = pin || null;
     }
+
     const desc = (form.description ?? "").trim();
     if (desc !== (detail.description ?? "")) {
       if (desc && (desc.length < 2 || desc.length > 255))
         return alert("description은 2~255자");
       payload.description = desc || null;
     }
+
     if (!Object.keys(payload).length) {
       setEditingPlace(false);
       return;
     }
+
     try {
       setSaving(true);
       const { data } = await patchPlace(detail.id, payload, token);
@@ -352,6 +363,7 @@ export default function PlanDetailPage() {
   ) => {
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
+
     const title = place.title;
     const address = place.address;
     const roadAddress = place.roadAddress;
@@ -360,18 +372,22 @@ export default function PlanDetailPage() {
     const lat = parseMapCoord(place.mapy) ?? parseFloat(place.lat);
     const lng = parseMapCoord(place.mapx) ?? parseFloat(place.lng);
     const pinColor = colorHex;
+
     if (!title || !address || !roadAddress || !mapx || !mapy)
       return alert("필수 정보가 부족해 저장할 수 없습니다.");
     if (!Number.isFinite(lat) || !Number.isFinite(lng))
       return alert("좌표 정보가 올바르지 않습니다.");
     if (!/^#[0-9A-Fa-f]{6}$/.test(pinColor))
       return alert("올바른 핀 색상이 아닙니다.");
+
     const nickTrim = (nickname ?? "").trim();
     if (nickTrim && (nickTrim.length < 2 || nickTrim.length > 30))
       return alert("nickname은 2~30자여야 합니다.");
+
     const descTrim = (description ?? "").trim();
     if (descTrim && (descTrim.length < 2 || descTrim.length > 255))
       return alert("description은 2~255자여야 합니다.");
+
     const payload = {
       placeId: place.placeId ?? place.id,
       nickname: nickTrim || null,
@@ -391,6 +407,7 @@ export default function PlanDetailPage() {
       planId,
       description: descTrim || null,
     };
+
     try {
       setSavingSearchId(place.placeId ?? place.id);
       await savePlaceToPlan(payload, token);
@@ -518,12 +535,14 @@ export default function PlanDetailPage() {
       setCollapsed(false);
       setActiveTab("route");
       setRouteLoading(true);
+
       const { data } = await getRoutePlaces(route.routeId || route.id, token);
       const list = Array.isArray(data)
         ? data
         : Array.isArray(data?.data)
         ? data.data
         : [];
+
       const normalized = list
         .map((p) => ({
           routePlaceId: p.routePlaceId,
@@ -534,11 +553,11 @@ export default function PlanDetailPage() {
           sequence: Number(p.sequence ?? 0),
           date: p.date,
           address: p.address,
-          roadAddress: p.roanAddredd || p.roadAddress,
+          roadAddress: p.roadAddress || p.roadAddress,
           mapx: p.mapx,
           mapy: p.mapy,
-          lat: Number(p.lat),
-          lng: Number(p.lng),
+          lat: Number.isFinite(p.lat) ? Number(p.lat) : parseMapCoord(p.mapy),
+          lng: Number.isFinite(p.lng) ? Number(p.lng) : parseMapCoord(p.mapx),
           color: p.color,
           isPinPlaceDeleted: Boolean(p.isPinPlaceDeleted),
         }))
@@ -716,8 +735,7 @@ export default function PlanDetailPage() {
             date={routeDate}
             onChangeDate={setRouteDate}
             onBack={closeRouteDetail}
-            onEdit={() => alert("루트 수정은 준비 중입니다.")}
-            onOpenPlace={(pinPlaceId) => handleSelectPlace({ id: pinPlaceId })}
+            onOpenPlace={openPlaceFromRoute}
             planId={planId}
             onRefresh={() => selectedRoute && openRouteDetail(selectedRoute)}
           />

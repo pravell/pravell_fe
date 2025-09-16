@@ -134,8 +134,31 @@ export const createRoute = (payload, token) =>
 export const getRoutePlaces = (routeId, token) =>
   API.get(`/v1/routes/${routeId}/places`, authHeader(token));
 
-  export const saveRoutePlace = (routeId, payload, token) =>
-    API.post(`/v1/routes/${routeId}/places`, payload, authHeader(token));
+export const saveRoutePlace = (routeId, payload, token) =>
+  API.post(`/v1/routes/${routeId}/places`, payload, authHeader(token));
+
+export const patchRoute = (routeId, payload, token) =>
+  API.patch(`/v1/routes/${routeId}`, payload, authHeader(token));
+
+export const deleteRoutes = (planId, routeIds, token) =>
+  API.delete(`/v1/routes`, {
+    ...authHeader(token),
+    params: { planId },
+    data: { routeId: routeIds },
+  });
+
+export const deleteRoutePlaces = (routeId, deleteIds, token) =>
+  API.delete(`/v1/routes/${routeId}/places`, {
+    ...authHeader(token),
+    data: { deleteRoutePlaceId: deleteIds },
+  });
+
+export const patchRoutePlace = (routeId, routePlaceId, payload, token) =>
+  API.patch(
+    `/v1/places/${routeId}/places/${routePlaceId}`,
+    payload,
+    authHeader(token)
+  );
 
 export const parseApiError = (err) => {
   const status = err?.response?.status;
