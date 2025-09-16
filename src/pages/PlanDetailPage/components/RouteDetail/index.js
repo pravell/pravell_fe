@@ -17,6 +17,7 @@ import AddPlaceForm from "./AddPlaceForm";
 import SelectPlaceList from "./SelectPlaceList";
 import EditRouteForm from "./EditRouteForm";
 import RoutePlaces from "./RoutePlaces";
+import ConfirmationModal from "../../../../components/ConfirmationModal/ConfirmationModal";
 
 export default function RouteDetail({
   route,
@@ -79,6 +80,9 @@ export default function RouteDetail({
   const [editSeq, setEditSeq] = useState("");
   const [placeSaving, setPlaceSaving] = useState(false);
 
+  const [confirmRouteDeleteOpen, setConfirmRouteDeleteOpen] = useState(false);
+  const [confirmPlacesDeleteOpen, setConfirmPlacesDeleteOpen] = useState(false);
+
   const handleBack = useCallback(() => {
     if (addMode && selectMode) return setSelectMode(false);
     if (addMode && !selectMode) return setAddMode(false);
@@ -135,7 +139,7 @@ export default function RouteDetail({
       setSelectedPlace(null);
       setNickname("");
       setMemo("");
-      onRefresh?.();
+      onRefresh?.({ reopen: true });
     } catch (e) {
       const { message } = parseApiError(e);
       alert(message ?? "추가에 실패했습니다.");
@@ -172,7 +176,7 @@ export default function RouteDetail({
       setRouteSaving(true);
       await patchRoute(routeId, body, token);
       setRouteEditMode(false);
-      onRefresh?.();
+      onRefresh?.({ reopen: true });
     } catch (e) {
       const { message } = parseApiError(e);
       alert(message ?? "루트 수정에 실패했습니다.");
@@ -181,18 +185,15 @@ export default function RouteDetail({
     }
   };
 
-  const handleDeleteRoute = async () => {
+  const doDeleteRoute = async () => {
     if (!planId || !routeId) return alert("필요한 정보가 없습니다.");
-    if (!window.confirm("이 루트를 삭제할까요? 되돌릴 수 없습니다.")) return;
-
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
-
     try {
       setRouteDeleting(true);
       await deleteRoutes(planId, [routeId], token);
       onBack?.();
-      onRefresh?.();
+      onRefresh?.({ reopen: false });
     } catch (e) {
       const { message } = parseApiError(e);
       alert(message ?? "루트 삭제에 실패했습니다.");
@@ -207,10 +208,9 @@ export default function RouteDetail({
     setSelectedPlaceIds(next);
   };
 
-  const handleDeletePlaces = async () => {
+  const doDeleteSelectedPlaces = async () => {
     if (!routeId) return alert("루트 정보가 없습니다.");
     if (!selectedPlaceIds.size) return alert("삭제할 장소를 선택하세요.");
-    if (!window.confirm("선택한 장소를 삭제할까요?")) return;
 
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
@@ -220,7 +220,7 @@ export default function RouteDetail({
       await deleteRoutePlaces(routeId, Array.from(selectedPlaceIds), token);
       setSelectedPlaceIds(new Set());
       setManageMode(false);
-      onRefresh?.();
+      onRefresh?.({ reopen: true });
     } catch (e) {
       const { message } = parseApiError(e);
       alert(message ?? "장소 삭제에 실패했습니다.");
@@ -265,7 +265,7 @@ export default function RouteDetail({
       await patchRoutePlace(routeId, editPlaceId, body, token);
       alert("장소가 수정되었습니다.");
       cancelEditPlace();
-      onRefresh?.();
+      onRefresh?.({ reopen: true });
     } catch (e) {
       const { message } = parseApiError(e);
       alert(message ?? "장소 수정에 실패했습니다.");
@@ -283,7 +283,7 @@ export default function RouteDetail({
         addMode={addMode}
         routeEditMode={routeEditMode}
         onClickRouteEdit={onClickRouteEdit}
-        onDeleteRoute={handleDeleteRoute}
+        onDeleteRoute={() => setConfirmRouteDeleteOpen(true)}
         routeDeleting={routeDeleting}
       />
 
@@ -326,7 +326,10 @@ export default function RouteDetail({
                   setSelectedPlaceIds(new Set());
                   setEditPlaceId(null);
                 }}
-                onDeleteSelected={handleDeletePlaces}
+                onDeleteSelected={() => {
+                  if (!selectedPlaceIds.size) return alert("삭제할 장소를 선택하세요.");
+                  setConfirmPlacesDeleteOpen(true);
+                }}
                 deleteLoading={deleteLoading}
               />
             </>
@@ -386,6 +389,42 @@ export default function RouteDetail({
           )}
         </>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmRouteDeleteOpen}
+        onClose={() => setConfirmRouteDeleteOpen(false)}
+        onConfirm={async () => {
+          if (routeDeleting) return;
+          setConfirmRouteDeleteOpen(false);
+          await doDeleteRoute();
+        }}
+        title="루트 삭제"
+        description="이 루트를 삭제할까요? 되돌릴 수 없습니다."
+        confirmText={routeDeleting ? "삭제 중..." : "삭제"}
+        cancelText="취소"
+        confirmButtonColor="#bf1041"
+        confirmTextColor="#ffffff"
+        cancelButtonColor="#000000"
+        cancelTextColor="#ffffff"
+      />
+
+      <ConfirmationModal
+        isOpen={confirmPlacesDeleteOpen}
+        onClose={() => setConfirmPlacesDeleteOpen(false)}
+        onConfirm={async () => {
+          if (deleteLoading) return;
+          setConfirmPlacesDeleteOpen(false);
+          await doDeleteSelectedPlaces();
+        }}
+        title="선택한 장소 삭제"
+        description="선택한 장소를 삭제할까요?"
+        confirmText={deleteLoading ? "삭제 중..." : "삭제"}
+        cancelText="취소"
+        confirmButtonColor="#ffe3e3"
+        confirmTextColor="#b00020"
+        cancelButtonColor="#000000"
+        cancelTextColor="#ffffff"
+      />
     </div>
   );
 }
