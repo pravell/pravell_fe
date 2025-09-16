@@ -3,7 +3,6 @@
   --header-height: 60px;
 }
 
-/* ===== Layout ===== */
 .container {
   position: relative;
   width: 100%;
@@ -17,7 +16,6 @@
   z-index: 0;
 }
 
-/* ===== Search Bar ===== */
 .searchBar {
   position: absolute;
   top: calc(var(--header-height) + 12px);
@@ -54,7 +52,6 @@
   align-items: center;
 }
 
-/* ===== Locate Me Button ===== */
 .locateButton {
   position: absolute;
   top: calc(var(--header-height) + 72px);
@@ -75,7 +72,6 @@
   width: 50px;
 }
 
-/* ===== Legend ===== */
 .legend {
   position: absolute;
   top: calc(var(--header-height) + 72px);
@@ -108,7 +104,6 @@
 .legendPlus:active {
   transform: scale(0.95);
 }
-
 .legendForm {
   padding: 4px 0 8px;
 }
@@ -170,9 +165,6 @@
   background: #eee;
   margin: 8px 0 4px;
 }
-
-.legendItemWrap {
-}
 .legendItem {
   display: flex;
   align-items: center;
@@ -193,7 +185,6 @@
   font-size: 12px;
   color: #333;
 }
-
 .legendEditRow {
   padding: 4px 0 6px;
 }
@@ -218,7 +209,6 @@
   flex: 1;
 }
 
-/* ===== Bottom Sheet ===== */
 .sheet {
   position: fixed;
   left: 50%;
@@ -234,10 +224,6 @@
   overflow-y: auto;
   transition: max-height 0.25s ease;
   z-index: 2000;
-}
-.sheetExpanded {
-  height: 82vh;
-  max-height: 92vh;
 }
 .sheetCollapsed {
   max-height: 64px;
@@ -255,7 +241,6 @@
   z-index: 21;
 }
 
-/* ===== Tabs ===== */
 .tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -277,7 +262,6 @@
   color: #333;
 }
 
-/* ===== Place List ===== */
 .list {
   padding: 8px 16px 16px;
 }
@@ -289,7 +273,6 @@
 .item:last-child {
   border-bottom: 0;
 }
-
 .itemHeader {
   display: flex;
   align-items: center;
@@ -316,13 +299,11 @@
   font-size: 12px;
   color: #666;
 }
-
 .naverLink {
   font-size: 12px;
   color: #3478f6;
   text-decoration: underline;
 }
-
 .starBtn {
   width: 28px;
   height: 28px;
@@ -334,7 +315,6 @@
   color: #ffb400;
 }
 
-/* ===== Rows / Hours ===== */
 .row {
   display: flex;
   gap: 10px;
@@ -373,7 +353,6 @@
   color: #444;
 }
 
-/* ===== Misc ===== */
 .memo {
   margin: 20px 0px;
   background: #eef6d8;
@@ -394,7 +373,6 @@
   font-size: 14px;
 }
 
-/* ===== Detail (PlaceDetail) ===== */
 .detail {
   padding: 8px 16px 16px;
 }
@@ -420,15 +398,12 @@
   line-height: 32px;
   cursor: pointer;
 }
-
 .detailTitle {
-  /* legacy (kept for safety) */
   margin: 0;
   font-size: 20px;
   font-weight: 800;
   margin-bottom: 10px;
 }
-
 .detailTitleWrap {
   margin: 0 0 10px;
 }
@@ -442,14 +417,12 @@
   font-size: 12px;
   color: #666;
 }
-
 .detailActions {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-left: auto;
 }
-
 .textBtn {
   appearance: none;
   border: 0;
@@ -523,7 +496,6 @@
   border-radius: 8px;
 }
 
-/* ===== Save Panel (검색 결과 저장) ===== */
 .savePanel {
   background: #fafafa;
   border: 1px solid #eee;
@@ -609,6 +581,7 @@
   color: var(--text-primary);
   font-weight: 700;
 }
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -656,4 +629,104 @@
   background: var(--secondary-color);
   color: var(--text-secondary);
   font-weight: 700;
+}
+
+.routeHeaderTop {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px 0;
+}
+.routeHeaderMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 14px 6px;
+}
+.routeDetailTitle {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+.routeDetailDateRow {
+  padding: 6px 14px 10px;
+}
+.routeDateControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.routeDateSelect {
+  flex: 1;
+  height: 34px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+  background: #fff;
+}
+.routeDatePicker {
+  height: 34px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.routeItemRow {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  cursor: pointer;
+}
+
+.routeSeq {
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.routeCenter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.routeTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.routeTitleTxt {
+  font-size: 16px;
+  font-weight: 800;
+  color: #222;
+}
+
+.routeNickTxt {
+  font-size: 12px;
+  color: #7e7e7e;
+}
+
+.routeAddr {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.25;
+}
+
+.routeRight {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 72px;
+}
+
+.routeDescTxt {
+  font-size: 12px;
+  color: #7e7e7e;
+  text-align: right;
 }

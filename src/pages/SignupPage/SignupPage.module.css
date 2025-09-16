@@ -72,3 +72,38 @@
   margin-top: 15px;
   cursor: pointer;
 }
+
+/* ===== Route Detail (header/date rows) ===== */
+.routeDetailHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 8px;
+}
+.routeDetailTitle {
+  margin: 0;
+  flex: 1;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.routeDetailDateRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 8px;
+}
+.routeDateLabel {
+  font-size: 12px;
+  color: #666;
+  width: 42px;
+  flex: 0 0 auto;
+}
+.routeDateSelect {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fff;
+}

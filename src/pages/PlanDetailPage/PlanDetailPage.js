@@ -20,6 +20,7 @@ import usePlanTitle from "./hooks/usePlanTitle";
 import RouteList from "./components/RouteList";
 import CreateRouteModal from "./components/CreateRouteModal";
 import useRoutes from "./hooks/useRoutes";
+import RouteDetail from "./components/RouteDetail";
 import {
   getPlanPlaces,
   getPlaceDetail,
@@ -28,6 +29,7 @@ import {
   patchPlace,
   deletePlaces,
   parseApiError,
+  getRoutePlaces,
 } from "../../services/api";
 
 export default function PlanDetailPage() {
@@ -74,7 +76,7 @@ export default function PlanDetailPage() {
   const [editingPlace, setEditingPlace] = useState(false);
   const [form, setForm] = useState({
     nickname: "",
-    pinColor: "var(--secondary-color)",
+    pinColor: "#93D3E7",
     description: "",
   });
   const [saving, setSaving] = useState(false);
@@ -83,6 +85,12 @@ export default function PlanDetailPage() {
 
   const [searchResults, setSearchResults] = useState([]);
   const [savingSearchId, setSavingSearchId] = useState(null);
+
+  const [selectedRoute, setSelectedRoute] = useState(null);
+  const [routePlaces, setRoutePlaces] = useState([]);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [routeDate, setRouteDate] = useState("");
+  const routeOverlaysRef = useRef({ markers: [], arrows: [], line: null });
 
   const pinColorOptions = useMemo(() => {
     const hex = (c) => (typeof c === "string" ? c.trim().toUpperCase() : "");
@@ -175,10 +183,6 @@ export default function PlanDetailPage() {
       loadRoutes();
     }
   }, [activeTab, loadRoutes]);
-
-  useEffect(() => {
-    if (openCreate) setCollapsed(false);
-  }, [openCreate]);
 
   useEffect(() => {
     if (firstPlaceLatLng && mapInstance.current && activeTab !== "search") {
@@ -296,7 +300,7 @@ export default function PlanDetailPage() {
     if (!editingPlace || !detail) return;
     setForm({
       nickname: detail.nickname ?? "",
-      pinColor: detail.pin_color || detail.pinColor || "var(--secondary-color)",
+      pinColor: detail.pin_color || detail.pinColor || "#93D3E7",
       description: detail.description ?? "",
     });
   }, [editingPlace, detail]);
@@ -410,7 +414,174 @@ export default function PlanDetailPage() {
     else if (d < -50) setCollapsed(false);
   };
 
-  const expanded = activeTab === "route" || openCreate;
+  const clearRouteOverlays = useCallback(() => {
+    const m = routeOverlaysRef.current;
+    m.markers.forEach((x) => x.setMap(null));
+    m.arrows.forEach((x) => x.setMap(null));
+    if (m.line) m.line.setMap(null);
+    routeOverlaysRef.current = { markers: [], arrows: [], line: null };
+  }, []);
+
+  const drawRoute = useCallback(
+    (list) => {
+      if (!mapInstance.current || !window.naver) return;
+      clearRouteOverlays();
+      const naver = window.naver;
+
+      const valid = (list || [])
+        .filter((p) => !p.isPinPlaceDeleted)
+        .map((p) => ({
+          ...p,
+          lat: Number.isFinite(p.lat) ? p.lat : parseMapCoord(p.mapy),
+          lng: Number.isFinite(p.lng) ? p.lng : parseMapCoord(p.mapx),
+        }))
+        .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+        .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+
+      if (!valid.length) return;
+
+      const path = [];
+      const markers = [];
+      const arrows = [];
+      const bounds = new naver.maps.LatLngBounds();
+
+      valid.forEach((p, idx) => {
+        const pos = new naver.maps.LatLng(p.lat, p.lng);
+        bounds.extend(pos);
+        path.push(pos);
+        const html = `<div style="width:24px;height:24px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:${
+          p.color || "#93D3E7"
+        };color:#fff;font-weight:800;font-size:12px;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.25)">${
+          idx + 1
+        }</div>`;
+        const marker = new naver.maps.Marker({
+          position: pos,
+          map: mapInstance.current,
+          icon: { content: html, anchor: new naver.maps.Point(12, 12) },
+          zIndex: 100,
+        });
+        markers.push(marker);
+      });
+
+      for (let i = 0; i < path.length - 1; i++) {
+        const a = path[i];
+        const b = path[i + 1];
+        const mid = new naver.maps.LatLng((a.y + b.y) / 2, (a.x + b.x) / 2);
+        const deg = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+        const arrowHtml = `<div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid #777;transform:rotate(${deg}deg)"></div>`;
+        const arrow = new naver.maps.Marker({
+          position: mid,
+          map: mapInstance.current,
+          icon: { content: arrowHtml, anchor: new naver.maps.Point(7, 7) },
+          zIndex: 90,
+        });
+        arrows.push(arrow);
+      }
+
+      const line = new naver.maps.Polyline({
+        map: mapInstance.current,
+        path,
+        strokeWeight: 3,
+        strokeColor: "#777",
+        strokeOpacity: 0.9,
+      });
+
+      mapInstance.current.fitBounds(bounds, {
+        top: 80,
+        left: 20,
+        right: 20,
+        bottom: 220,
+      });
+      routeOverlaysRef.current = { markers, arrows, line };
+    },
+    [clearRouteOverlays, mapInstance]
+  );
+
+  const filteredRoutePlaces = useMemo(() => {
+    if (!routeDate) return routePlaces;
+    return routePlaces.filter(
+      (p) => (p.date || "").replace(/-/g, ".") === routeDate
+    );
+  }, [routePlaces, routeDate]);
+
+  useEffect(() => {
+    if (selectedRoute) {
+      drawRoute(filteredRoutePlaces);
+    }
+  }, [selectedRoute, filteredRoutePlaces, drawRoute]);
+
+  const openRouteDetail = useCallback(async (route) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return alert("로그인이 필요합니다.");
+    try {
+      setSelectedRoute(route);
+      setCollapsed(false);
+      setActiveTab("route");
+      setRouteLoading(true);
+      const { data } = await getRoutePlaces(route.routeId || route.id, token);
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+      const normalized = list
+        .map((p) => ({
+          routePlaceId: p.routePlaceId,
+          pinPlaceId: p.pinPlaceId,
+          title: p.title,
+          nickname: p.nickname,
+          description: p.description,
+          sequence: Number(p.sequence ?? 0),
+          date: p.date,
+          address: p.address,
+          roadAddress: p.roanAddredd || p.roadAddress,
+          mapx: p.mapx,
+          mapy: p.mapy,
+          lat: Number(p.lat),
+          lng: Number(p.lng),
+          color: p.color,
+          isPinPlaceDeleted: Boolean(p.isPinPlaceDeleted),
+        }))
+        .sort((a, b) => a.sequence - b.sequence);
+
+      setRoutePlaces(normalized);
+
+      const firstDate = (normalized.find((x) => !!x.date)?.date || "").replace(
+        /-/g,
+        "."
+      );
+      setRouteDate(firstDate || "");
+    } catch (e) {
+      const { status, message } = parseApiError(e);
+      if (status === 404) alert("루트를 찾을 수 없습니다.");
+      else alert(message ?? "루트 장소를 불러오지 못했습니다.");
+    } finally {
+      setRouteLoading(false);
+    }
+  }, []);
+
+  const closeRouteDetail = useCallback(() => {
+    setSelectedRoute(null);
+    setRoutePlaces([]);
+    setRouteLoading(false);
+    setRouteDate("");
+    clearRouteOverlays();
+  }, [clearRouteOverlays]);
+
+  const openPlaceFromRoute = useCallback((pinPlaceId) => {
+    if (!pinPlaceId) return;
+    setCollapsed(false);
+    setDetailOpen(true);
+    setDetail(null);
+    setEditingPlace(false);
+    setShowDeleteConfirm(false);
+    setDetailId(pinPlaceId);
+    setActiveTab("places");
+  }, []);
+
+  const expanded =
+    (activeTab === "route" || openCreate || selectedRoute) && !collapsed;
+
   return (
     <div className={styles.container}>
       <PlanDetailHeader
@@ -461,6 +632,7 @@ export default function PlanDetailPage() {
             onClick={() => {
               setActiveTab("places");
               setDetailOpen(false);
+              closeRouteDetail();
               addMarkers(places);
             }}
           >
@@ -484,6 +656,7 @@ export default function PlanDetailPage() {
               onClick={() => {
                 setActiveTab("search");
                 setDetailOpen(false);
+                closeRouteDetail();
               }}
             >
               검색 결과
@@ -534,9 +707,26 @@ export default function PlanDetailPage() {
             onRequestSave={handleSaveSearchPlace}
             savingId={savingSearchId}
           />
+        ) : selectedRoute ? (
+          <RouteDetail
+            route={selectedRoute}
+            places={filteredRoutePlaces}
+            allPlaces={routePlaces}
+            loading={routeLoading}
+            date={routeDate}
+            onChangeDate={setRouteDate}
+            onBack={closeRouteDetail}
+            onEdit={() => alert("루트 수정은 준비 중입니다.")}
+            onAddPlace={() => alert("장소 추가 모달 열기")}
+            onOpenPlace={openPlaceFromRoute}
+          />
         ) : (
           <>
-            <RouteList routes={routes} onAdd={() => setOpenCreate(true)} />
+            <RouteList
+              routes={routes}
+              onAdd={() => setOpenCreate(true)}
+              onSelect={openRouteDetail}
+            />
             <CreateRouteModal
               open={openCreate}
               onClose={() => setOpenCreate(false)}
