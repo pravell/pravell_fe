@@ -134,6 +134,9 @@ export const createRoute = (payload, token) =>
 export const getRoutePlaces = (routeId, token) =>
   API.get(`/v1/routes/${routeId}/places`, authHeader(token));
 
+  export const saveRoutePlace = (routeId, payload, token) =>
+    API.post(`/v1/routes/${routeId}/places`, payload, authHeader(token));
+
 export const parseApiError = (err) => {
   const status = err?.response?.status;
   const code = err?.response?.data?.code;

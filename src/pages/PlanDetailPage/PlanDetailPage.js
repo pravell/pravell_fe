@@ -717,8 +717,9 @@ export default function PlanDetailPage() {
             onChangeDate={setRouteDate}
             onBack={closeRouteDetail}
             onEdit={() => alert("루트 수정은 준비 중입니다.")}
-            onAddPlace={() => alert("장소 추가 모달 열기")}
-            onOpenPlace={openPlaceFromRoute}
+            onOpenPlace={(pinPlaceId) => handleSelectPlace({ id: pinPlaceId })}
+            planId={planId}
+            onRefresh={() => selectedRoute && openRouteDetail(selectedRoute)}
           />
         ) : (
           <>
