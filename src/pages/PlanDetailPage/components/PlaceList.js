@@ -92,7 +92,7 @@ export default function PlaceList({ places, keyword, onSelect }) {
         );
       })}
       {filtered.length === 0 && (
-        <div className={styles.empty}>저장된 장소가 없습니다.</div>
+        <div className={styles.empty}>저장된 장소가 없습니다. <br /> 장소 검색 후 저장해 주세요.</div>
       )}
     </div>
   );
