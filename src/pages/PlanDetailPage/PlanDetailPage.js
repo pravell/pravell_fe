@@ -98,13 +98,31 @@ export default function PlanDetailPage() {
   const [routeDate, setRouteDate] = useState("");
   const routeOverlaysRef = useRef({ markers: [], arrows: [], line: null });
 
+  const pinHEX = /^#[0-9A-F]{6}$/i;
+
   const pinColorOptions = useMemo(() => {
-    const hex = (c) => (typeof c === "string" ? c.trim().toUpperCase() : "");
-    const list = (legend || [])
-      .map((l) => hex(l.color))
-      .filter((c) => /^#[0-9A-F]{6}$/.test(c));
-    const dedup = Array.from(new Set(list));
-    return dedup.length ? dedup : ["#93D3E7", "#C0D86E", "#61EB52", "#F54927"];
+    let primaryHex = "";
+    if (typeof window !== "undefined") {
+      primaryHex = getComputedStyle(document.documentElement)
+        .getPropertyValue("--primary-color")
+        .trim();
+    }
+    const hasPrimary = pinHEX.test(primaryHex);
+
+    const legendHexes = (legend || [])
+      .map((l) => String(l?.color || "").trim())
+      .filter((c) => pinHEX.test(c))
+      .map((c) => c.toUpperCase());
+
+    if (legendHexes.length === 0) {
+      return hasPrimary ? [primaryHex.toUpperCase()] : [];
+    }
+
+    const ordered = hasPrimary
+      ? [primaryHex.toUpperCase(), ...legendHexes]
+      : legendHexes;
+
+    return Array.from(new Set(ordered));
   }, [legend]);
 
   const refreshPlanPlaces = useCallback(async () => {
@@ -722,6 +740,7 @@ export default function PlanDetailPage() {
               saving={saving}
               onDelete={deletePlace}
               deleting={deleting}
+              pinColorOptions={pinColorOptions}
             />
           )
         ) : activeTab === "search" ? (

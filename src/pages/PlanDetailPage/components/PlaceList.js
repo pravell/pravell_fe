@@ -27,7 +27,7 @@ export default function PlaceList({ places, keyword, onSelect }) {
     <div className={styles.list}>
       {filtered.map((p) => {
         const mainTitle = p.title || p.nickname || "이름 없음";
-        const subNick = p.title ? p.nickname : ""; // title이 없을 땐 중복 방지
+        const subNick = p.title ? p.nickname : ""; 
         const road = p.roadAddress || p.roadAddredd || "";
 
         return (
