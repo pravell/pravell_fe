@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
+import API from "../../../services/api";
 import { parseMapCoord } from "../utils/utils";
 
 const normalizeArray = (data) => {
@@ -32,15 +32,8 @@ export default function usePlanData(planId) {
     inflightRef.current = true;
     setLoading(true);
 
-    const headers = { Authorization: `Bearer ${token}` };
-    const fetchPlaces = axios.get(
-      `${process.env.REACT_APP_API_URL}/v1/places/plan/${planId}`,
-      { headers }
-    );
-    const fetchLegend = axios.get(
-      `${process.env.REACT_APP_API_URL}/v1/markers/${planId}`,
-      { headers }
-    );
+    const fetchPlaces = API.get(`/v1/places/plan/${planId}`);
+    const fetchLegend = API.get(`/v1/markers/${planId}`);
 
     Promise.all([fetchPlaces, fetchLegend])
       .then(([pRes, lRes]) => {
@@ -59,15 +52,12 @@ export default function usePlanData(planId) {
   }, [planId]);
 
   const legendToShow = useMemo(
-    () =>
-      legend && legend.length ? [...DEFAULT_LEGEND, ...legend] : DEFAULT_LEGEND,
+    () => (legend && legend.length ? [...DEFAULT_LEGEND, ...legend] : DEFAULT_LEGEND),
     [legend]
   );
 
   const replacePlace = (updated) => {
-    setPlaces((prev) =>
-      prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
-    );
+    setPlaces((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
   };
   const removePlace = (id) => {
     setPlaces((prev) => prev.filter((p) => p.id !== id));

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './JoinByCodePage.module.css';
-import axios from 'axios';
 import CustomButton from '../../components/CustomButton/CustomButton';
 import Header from '../../components/Header/Header';
+import API from '../../services/api';
 
 const JoinByCodePage = () => {
   const [code, setCode] = useState('');
@@ -20,11 +20,7 @@ const JoinByCodePage = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/v1/plans/join?code=${code}`, {}, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      await API.post(`/v1/plans/join?code=${encodeURIComponent(code)}`, {});
       alert('여행 플랜에 성공적으로 참여했습니다!');
       navigate('/');
     } catch (error) {
@@ -32,14 +28,14 @@ const JoinByCodePage = () => {
         const { status, data } = error.response;
         if (status === 404) {
           alert('초대 코드가 올바르지 않거나 만료되었습니다.');
-        } else if (status === 400 && data.message === '이미 플랜에 참여중인 유저입니다.') {
+        } else if (status === 400 && data?.message === '이미 플랜에 참여중인 유저입니다.') {
           alert(data.message);
         } else if (status === 403) {
           alert('해당 플랜에 참여가 불가능합니다.');
         } else if (status === 401) {
           alert('토큰이 올바르지 않습니다.');
         } else {
-          alert(`오류: ${data.message}`);
+          alert(`오류: ${data?.message ?? '알 수 없는 오류'}`);
         }
       } else {
         alert('네트워크 오류가 발생했습니다.');
@@ -49,11 +45,11 @@ const JoinByCodePage = () => {
 
   return (
     <div className={styles.joinPageContainer}>
-    <Header title="여행 플랜 생성하기" />
-    <div className={styles.formSection}>
-      <div className={styles.formGroup}>
-        <p className={styles.formTitle}>여행 플랜에<br />참여해주세요</p>
-      </div>
+      <Header title="여행 플랜 생성하기" />
+      <div className={styles.formSection}>
+        <div className={styles.formGroup}>
+          <p className={styles.formTitle}>여행 플랜에<br />참여해주세요</p>
+        </div>
         
         <form onSubmit={handleJoinPlan} className={styles.joinForm}>
           <div className={styles.inputGroup}>

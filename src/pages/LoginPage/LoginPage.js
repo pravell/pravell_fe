@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./LoginPage.module.css";
-import axios from "axios";
 import CustomButton from "../../components/CustomButton/CustomButton";
-import { setTokens } from "../../services/api";
+import API, { setTokens } from "../../services/api";
 
 const LoginPage = () => {
   const [id, setId] = useState("");
@@ -13,11 +12,7 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(
-        `${process.env.REACT_APP_API_URL}/v1/auth/sign-in`,
-        { id, password },
-        { withCredentials: true }
-      );
+      const { data } = await API.post("/v1/auth/sign-in", { id, password });
       const accessToken = data?.accessToken || data?.access_token || "";
       const refreshToken = data?.refreshToken || data?.refresh_token || "";
       setTokens({ accessToken, refreshToken });

@@ -1,4 +1,3 @@
-// src/pages/PlanDetail/hooks/useRoutePlaces.js
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getRoutePlaces, parseApiError } from "../../../services/api";
 import { parseMapCoord } from "../utils/utils";

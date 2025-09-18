@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './SignupPage.module.css';
-import axios from 'axios';
 import CustomButton from '../../components/CustomButton/CustomButton';
+import API, { setTokens } from '../../services/api';
 
 const SignupPage = () => {
   const [id, setId] = useState('');
@@ -14,29 +14,31 @@ const SignupPage = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/v1/auth/sign-up`, {
+      const { data } = await API.post('/v1/auth/sign-up', {
         id,
         password,
         nickname,
       });
 
-      const { accessToken, refreshToken } = response.data;
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      const accessToken = data?.accessToken || data?.access_token || '';
+      const refreshToken = data?.refreshToken || data?.refresh_token || '';
+      if (accessToken || refreshToken) {
+        setTokens({ accessToken, refreshToken });
+      }
 
       navigate('/');
     } catch (error) {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 409){
-          alert(data.message);
+          alert(data?.message ?? '이미 존재하는 아이디입니다.');
         } else if (status === 400 && data && data.message) {
           alert(data.message);
         } else {
           alert('회원가입에 실패했습니다. 다시 시도해주세요.');
         }
       } else {
-        alert('네트워크 오류가 발생했습니다.', error);
+        alert('네트워크 오류가 발생했습니다.');
       }
     }
   };

@@ -1,4 +1,3 @@
-// src/pages/PlanDetail/components/PlanDetailHeader.jsx
 import React from "react";
 import styles from "../../../components/Header/Header.module.css";
 

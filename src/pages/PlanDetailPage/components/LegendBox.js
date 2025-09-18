@@ -1,13 +1,12 @@
 import React, { useMemo, useRef, useState } from "react";
 import styles from "../PlanDetailPage.module.css";
-import axios from "axios";
+import API from "../../../services/api";
 import { DEFAULT_LEGEND as BASE_DEFAULT } from "../hooks/usePlanData";
 
 export default function LegendBox({ planId, legend, setLegend }) {
   const DEFAULT_LEGEND = BASE_DEFAULT;
   const legendToShow = useMemo(
-    () =>
-      legend && legend.length ? [...DEFAULT_LEGEND, ...legend] : DEFAULT_LEGEND,
+    () => (legend && legend.length ? [...DEFAULT_LEGEND, ...legend] : DEFAULT_LEGEND),
     [legend]
   );
 
@@ -65,19 +64,15 @@ export default function LegendBox({ planId, legend, setLegend }) {
     e.preventDefault();
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
+
     const hex = newColor.trim();
     const desc = newDesc.trim();
-    if (!/^#[0-9A-Fa-f]{6}$/.test(hex))
-      return alert("HEX 색상 형식 예) #61EB52");
+    if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return alert("HEX 색상 형식 예) #61EB52");
     if (desc.length < 2 || desc.length > 30) return alert("설명은 2~30자");
 
     try {
       setPosting(true);
-      const { data } = await axios.post(
-        `${process.env.REACT_APP_API_URL}/v1/markers`,
-        { planId, color: hex, description: desc },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const { data } = await API.post(`/v1/markers`, { planId, color: hex, description: desc });
       setLegend((prev) => [...prev, data]);
       setShowForm(false);
       setNewDesc("");
@@ -96,16 +91,13 @@ export default function LegendBox({ planId, legend, setLegend }) {
 
     try {
       setSaving(true);
-      await axios.patch(
-        `${process.env.REACT_APP_API_URL}/v1/markers/${editingId}`,
-        { color: editColor.trim(), description: editDesc.trim() },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await API.patch(`/v1/markers/${editingId}`, {
+        color: editColor.trim(),
+        description: editDesc.trim(),
+      });
       setLegend((prev) =>
         prev.map((m) =>
-          (m.markerId ?? m.id) === editingId
-            ? { ...m, color: editColor, description: editDesc }
-            : m
+          (m.markerId ?? m.id) === editingId ? { ...m, color: editColor, description: editDesc } : m
         )
       );
       setEditingId(null);
@@ -119,17 +111,8 @@ export default function LegendBox({ planId, legend, setLegend }) {
   const deleteMarker = async () => {
     if (!editingId) return;
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/v1/markers/${editingId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
-      setLegend((prev) =>
-        prev.filter((m) => (m.markerId ?? m.id) !== editingId)
-      );
+      await API.delete(`/v1/markers/${editingId}`);
+      setLegend((prev) => prev.filter((m) => (m.markerId ?? m.id) !== editingId));
       setEditingId(null);
     } catch (e) {
       alert(e.response?.data?.message ?? "삭제 실패");
@@ -177,18 +160,10 @@ export default function LegendBox({ planId, legend, setLegend }) {
             />
           </div>
           <div className={styles.legendFormBtns}>
-            <button
-              type="button"
-              className={styles.legendCancelBtn}
-              onClick={() => setShowForm(false)}
-            >
+            <button type="button" className={styles.legendCancelBtn} onClick={() => setShowForm(false)}>
               취소
             </button>
-            <button
-              type="submit"
-              className={styles.legendSaveBtn}
-              disabled={posting}
-            >
+            <button type="submit" className={styles.legendSaveBtn} disabled={posting}>
               {posting ? "추가 중..." : "추가"}
             </button>
           </div>
@@ -202,16 +177,11 @@ export default function LegendBox({ planId, legend, setLegend }) {
         return (
           <div key={i} className={styles.legendItemWrap}>
             <div
-              className={`${styles.legendItem} ${
-                id ? styles.legendItemEditable : ""
-              }`}
+              className={`${styles.legendItem} ${id ? styles.legendItemEditable : ""}`}
               {...attachPressHandlers(item)}
               title={id ? "꾹 눌러 편집/삭제" : undefined}
             >
-              <span
-                className={styles.legendDot}
-                style={{ backgroundColor: item.color }}
-              />
+              <span className={styles.legendDot} style={{ backgroundColor: item.color }} />
               <span className={styles.legendText}>{item.description}</span>
             </div>
 
@@ -242,27 +212,14 @@ export default function LegendBox({ planId, legend, setLegend }) {
                   />
                 </div>
                 <div className={styles.legendEditBtns}>
-                  <button
-                    className={styles.legendDelBtn}
-                    type="button"
-                    onClick={deleteMarker}
-                  >
+                  <button className={styles.legendDelBtn} type="button" onClick={deleteMarker}>
                     삭제
                   </button>
                   <div className={styles.legendEditSpacer} />
-                  <button
-                    className={styles.legendCancelBtn}
-                    type="button"
-                    onClick={() => setEditingId(null)}
-                  >
+                  <button className={styles.legendCancelBtn} type="button" onClick={() => setEditingId(null)}>
                     취소
                   </button>
-                  <button
-                    className={styles.legendSaveBtn}
-                    type="button"
-                    onClick={saveEdit}
-                    disabled={saving}
-                  >
+                  <button className={styles.legendSaveBtn} type="button" onClick={saveEdit} disabled={saving}>
                     {saving ? "저장 중..." : "저장"}
                   </button>
                 </div>

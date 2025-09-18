@@ -1,10 +1,13 @@
+// src/pages/MyPage/MyPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './MyPage.module.css';
-import axios from 'axios';
 import CustomButton from '../../components/CustomButton/CustomButton';
 import Header from '../../components/Header/Header';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
+
+// ✅ 공용 API 인스턴스(자동 토큰 리프레시) 사용
+import API, { clearTokens } from '../../services/api';
 
 const MyPage = () => {
   const [user, setUser] = useState(null);
@@ -15,72 +18,59 @@ const MyPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      setIsLoggedIn(true);
-      fetchUserInfo(accessToken);
-    } else {
-      setIsLoggedIn(false);
-      setIsLoading(false);
-    }
-  }, []);
-
-  const fetchUserInfo = async (token) => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/v1/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUser(response.data);
-      setIsLoading(false);
-    } catch (error) {
-      if (error.response?.status === 401) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+    const fetchUserInfo = async () => {
+      try {
+        // ✅ Authorization 자동 부착 + 만료 시 자동 리프레시 시도
+        const { data } = await API.get('/v1/users/me');
+        setUser(data);
+        setIsLoggedIn(true);
+      } catch (error) {
+        // 여기까지 왔다는 건 리프레시도 실패(완전 만료)한 케이스일 가능성이 높음
         setIsLoggedIn(false);
+        // 필요하면 안내 문구 추가 가능
+        // alert('로그인이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.');
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchUserInfo();
+  }, [navigate]);
 
   const handleLogout = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      try {
-        await axios.post(`${process.env.REACT_APP_API_URL}/v1/auth/sign-out`, null, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-      } catch (error) {
-        console.error('로그아웃 API 호출 실패:', error);
-      }
+    try {
+      await API.post('/v1/auth/sign-out'); // 서버에서 세션/리프레시 토큰 정리
+    } catch (error) {
+      // 로그아웃 API 실패해도 클라이언트 토큰은 지워서 안전하게 로그아웃 처리
+      console.error('로그아웃 API 호출 실패:', error);
+    } finally {
+      clearTokens();
+      setIsLogoutModalOpen(false);
+      navigate('/login');
     }
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    navigate('/login');
-    setIsLogoutModalOpen(false);
   };
 
   const handleWithdrawal = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/v1/users/me`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+    try {
+      await API.delete('/v1/users/me');
+      clearTokens();
+      navigate('/login');
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        // 리프레시도 실패해서 여기로 떨어졌다면 이미 인터셉터에서 토큰 정리됐을 수 있음
+        // 안내만 하고 로그인으로 이동
+        alert('로그인이 만료되었거나 권한이 없습니다. 다시 로그인해주세요.');
+        clearTokens();
         navigate('/login');
-      } catch (error) {
-        if (error.response?.status === 401) {
-          alert('토큰이 올바르지 않습니다.');
-        } else {
-          alert('탈퇴에 실패했습니다. 다시 시도해주세요.');
-        }
+      } else {
+        alert('탈퇴에 실패했습니다. 다시 시도해주세요.');
       }
+    } finally {
+      setIsDeleteModalOpen(false);
     }
-    setIsDeleteModalOpen(false);
   };
-  
+
   const handleNicknameChangeClick = () => {
     navigate('/change-nickname');
   };
@@ -126,7 +116,13 @@ const MyPage = () => {
               <ul className={styles.menuList}>
                 <li className={styles.menuItem} onClick={handleNicknameChangeClick}>닉네임 변경</li>
                 <li className={styles.menuItem} onClick={() => setIsLogoutModalOpen(true)}>로그아웃</li>
-                <li className={styles.menuItem} style={{ color: 'var(--tertiary-color)' }} onClick={() => setIsDeleteModalOpen(true)}>탈퇴</li>
+                <li
+                  className={styles.menuItem}
+                  style={{ color: 'var(--tertiary-color)' }}
+                  onClick={() => setIsDeleteModalOpen(true)}
+                >
+                  탈퇴
+                </li>
               </ul>
             </div>
           </div>

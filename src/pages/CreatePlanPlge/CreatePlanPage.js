@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CreatePlanPage.module.css';
-import axios from 'axios';
 import CustomButton from '../../components/CustomButton/CustomButton';
 import Header from '../../components/Header/Header';
+import API from '../../services/api';
 
 const CreatePlanPage = () => {
   const [planName, setPlanName] = useState('');
@@ -23,20 +23,16 @@ const CreatePlanPage = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/v1/plans`, {
+      await API.post('/v1/plans', {
         name: planName,
         isPublic,
         startDate,
         endDate,
-      }, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       });
       navigate('/');
     } catch (error) {
       if (error.response) {
-        alert(`오류: ${error.response.data.message}`);
+        alert(`오류: ${error.response.data?.message ?? '알 수 없는 오류'}`);
       } else {
         alert('네트워크 오류가 발생했습니다.');
       }

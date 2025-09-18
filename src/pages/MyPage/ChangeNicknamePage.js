@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import styles from './ChangeNicknamePage.module.css';
 import Header from '../../components/Header/Header';
 import CustomButton from '../../components/CustomButton/CustomButton';
+import API from '../../services/api';
 
 const ChangeNicknamePage = () => {
   const [nickname, setNickname] = useState('');
@@ -20,13 +20,11 @@ const ChangeNicknamePage = () => {
     }
 
     try {
-      await axios.patch(`${process.env.REACT_APP_API_URL}/v1/users/me`, { nickname }, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      await API.patch('/v1/users/me', { nickname });
       navigate('/my');
     } catch (error) {
       if (error.response) {
-        alert(`오류: ${error.response.data.message}`);
+        alert(`오류: ${error.response.data?.message ?? '알 수 없는 오류'}`);
       } else {
         alert('네트워크 오류가 발생했습니다.');
       }

@@ -1,67 +1,52 @@
+// src/pages/MainPage/MainPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./MainPage.module.css";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import CreatePlanModal from "../../components/CreatePlanModal/CreatePlanModal";
 import MainPageHeader from "./MainPageHeader";
-import axios from "axios";
+import API, { getAccessToken } from "../../services/api"; // ✅ axios 대신 API 사용
 
 const MainPage = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const getAccessToken = () => {
-    return localStorage.getItem("accessToken");
-  };
-
   useEffect(() => {
     const accessToken = getAccessToken();
     if (accessToken) {
-      setIsLoggedIn(true);
-      fetchTravelPlans(accessToken);
+      // 토큰이 있으면 목록 요청 시도 (만료면 인터셉터가 자동 갱신 후 재시도)
+      fetchTravelPlans();
     } else {
       setIsLoggedIn(false);
       setIsLoading(false);
     }
   }, []);
 
-  const fetchTravelPlans = async (token) => {
+  const fetchTravelPlans = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/v1/plans`,
-        {
-          headers: {
-            Authorization: `Bearer ` + token,
-          },
-        }
-      );
-      setPlans(response.data);
-      setIsLoading(false);
+      const { data } = await API.get(`/v1/plans`); // ✅ Authorization 자동 부착 + 자동 리프레시
+      setPlans(data || []);
+      setIsLoggedIn(true);
     } catch (error) {
-      if (error.response && error.response.status === 401) {
+      // 리프레시도 실패(완전 만료)인 경우에만 여기로 떨어짐
+      if (error?.response?.status === 401) {
         setIsLoggedIn(false);
-        localStorage.removeItem("accessToken");
-        alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
+        // 토큰 정리는 인터셉터가 이미 했음
+        navigate("/login");
       } else {
-        console.error("API 호출 중 오류 발생:", error);
+        console.error("플랜 목록 조회 오류:", error);
       }
+    } finally {
       setIsLoading(false);
     }
   };
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
 
-  const handlePlusButtonClick = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
+  const handleLoginClick = () => navigate("/login");
+  const handlePlusButtonClick = () => setIsModalOpen(true);
+  const handleModalClose = () => setIsModalOpen(false);
 
   const handlePlanClick = (plan) => {
     navigate(`/plan/${plan.planId}`, { state: { planTitle: plan.planName } });
@@ -76,19 +61,10 @@ const MainPage = () => {
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
 
-    const timeDiffStart = start.getTime() - today.getTime();
-    const daysDiffStart = Math.ceil(timeDiffStart / (1000 * 3600 * 24));
-
-    const timeDiffEnd = end.getTime() - today.getTime();
-    const daysDiffEnd = Math.ceil(timeDiffEnd / (1000 * 3600 * 24));
-
-    if (today > end) {
-      return "여행 종료";
-    } else if (today >= start && today <= end) {
-      return "여행 중";
-    } else {
-      return `D-${daysDiffStart}`;
-    }
+    if (today > end) return "여행 종료";
+    if (today >= start && today <= end) return "여행 중";
+    const daysDiffStart = Math.ceil((start - today) / (1000 * 3600 * 24));
+    return `D-${daysDiffStart}`;
   };
 
   if (isLoading) {
@@ -116,7 +92,9 @@ const MainPage = () => {
           />
         </div>
       );
-    } else if (plans.length === 0) {
+    }
+
+    if ((plans || []).length === 0) {
       return (
         <div className={styles.emptyPlanContainer}>
           <img
@@ -140,71 +118,62 @@ const MainPage = () => {
           />
         </div>
       );
-    } else {
-      const sortedPlans = [...plans].sort((a, b) => {
-        const aStatus = getPlanStatus(a.startDate, a.endDate);
-        const bStatus = getPlanStatus(b.startDate, b.endDate);
-
-        if (aStatus === "여행 중" && bStatus !== "여행 중") {
-          return -1;
-        }
-        if (aStatus !== "여행 중" && bStatus === "여행 중") {
-          return 1;
-        }
-        if (aStatus === "여행 종료" && bStatus !== "여행 종료") {
-          return 1;
-        }
-        if (aStatus !== "여행 종료" && bStatus === "여행 종료") {
-          return -1;
-        }
-        const aDays = aStatus.startsWith("D-")
-          ? parseInt(aStatus.substring(2))
-          : Infinity;
-        const bDays = bStatus.startsWith("D-")
-          ? parseInt(bStatus.substring(2))
-          : Infinity;
-        return aDays - bDays;
-      });
-
-      return (
-        <div className={styles.travelListContainer}>
-          {sortedPlans.map((plan) => {
-            const statusText = getPlanStatus(plan.startDate, plan.endDate);
-            const isFinished = statusText === "여행 종료";
-
-            return (
-              <div
-                key={plan.planId}
-                className={styles.travelPlanItem}
-                onClick={() => handlePlanClick(plan)} 
-              >
-                <div className={styles.planInfo}>
-                  <p className={styles.planTitle}>{plan.planName}</p>
-                  <p className={styles.planMembers}>
-                    {plan.members.join(", ")}
-                  </p>
-                  <p
-                    className={styles.planDate}
-                  >{`${plan.startDate} ~ ${plan.endDate}`}</p>
-                </div>
-                <div className={styles.planStatusContainer}>
-                  <span
-                    className={styles.planStatus}
-                    style={{
-                      backgroundColor: isFinished
-                        ? "var(--secondary-color)"
-                        : "var(--primary-color)",
-                    }}
-                  >
-                    {statusText}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      );
     }
+
+    const sortedPlans = [...plans].sort((a, b) => {
+      const aStatus = getPlanStatus(a.startDate, a.endDate);
+      const bStatus = getPlanStatus(b.startDate, b.endDate);
+
+      if (aStatus === "여행 중" && bStatus !== "여행 중") return -1;
+      if (aStatus !== "여행 중" && bStatus === "여행 중") return 1;
+      if (aStatus === "여행 종료" && bStatus !== "여행 종료") return 1;
+      if (aStatus !== "여행 종료" && bStatus === "여행 종료") return -1;
+
+      const aDays = aStatus.startsWith("D-")
+        ? parseInt(aStatus.substring(2), 10)
+        : Infinity;
+      const bDays = bStatus.startsWith("D-")
+        ? parseInt(bStatus.substring(2), 10)
+        : Infinity;
+      return aDays - bDays;
+    });
+
+    return (
+      <div className={styles.travelListContainer}>
+        {sortedPlans.map((plan) => {
+          const statusText = getPlanStatus(plan.startDate, plan.endDate);
+          const isFinished = statusText === "여행 종료";
+
+          return (
+            <div
+              key={plan.planId}
+              className={styles.travelPlanItem}
+              onClick={() => handlePlanClick(plan)}
+            >
+              <div className={styles.planInfo}>
+                <p className={styles.planTitle}>{plan.planName}</p>
+                <p className={styles.planMembers}>{plan.members.join(", ")}</p>
+                <p className={styles.planDate}>
+                  {`${plan.startDate} ~ ${plan.endDate}`}
+                </p>
+              </div>
+              <div className={styles.planStatusContainer}>
+                <span
+                  className={styles.planStatus}
+                  style={{
+                    backgroundColor: isFinished
+                      ? "var(--secondary-color)"
+                      : "var(--primary-color)",
+                  }}
+                >
+                  {statusText}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -214,7 +183,6 @@ const MainPage = () => {
         handlePlusButtonClick={handlePlusButtonClick}
       />
       {renderContent()}
-
       <CreatePlanModal isOpen={isModalOpen} onClose={handleModalClose} />
     </div>
   );
