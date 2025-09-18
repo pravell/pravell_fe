@@ -46,9 +46,9 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-family: "Pretendard", sans-serif;
-  font-size: 14px;
+  font-size: var(--form-font-size);
   box-sizing: border-box;
-  padding-right: 60px; /* 글자 수 표시 공간 확보 */
+  padding-right: 60px; 
 }
 
 .charCount {

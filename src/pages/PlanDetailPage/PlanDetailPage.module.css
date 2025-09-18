@@ -35,7 +35,7 @@
   border: 0;
   background: transparent;
   padding: 10px 16px 10px 18px;
-  font-size: 16px;
+  font-size: var(--form-font-size);
   outline: none;
 }
 .searchIcon {
@@ -126,7 +126,7 @@
   border: 1px solid #e5e5e5;
   border-radius: 6px;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: var(--form-font-size);
   width: 80px;
 }
 .legendDescInput {
@@ -135,7 +135,7 @@
   border: 1px solid #e5e5e5;
   border-radius: 6px;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: var(--form-font-size);
 }
 .legendFormBtns {
   display: flex;
@@ -476,7 +476,7 @@
 }
 .rowValueInput {
   flex: 1;
-  font-size: 13px;
+  font-size: var(--form-font-size);
   padding: 8px 10px;
   border: 1px solid #e6e6e6;
   border-radius: 8px;
@@ -490,7 +490,7 @@
   flex: 1;
   resize: vertical;
   min-height: 72px;
-  font-size: 13px;
+  font-size: var(--form-font-size);
   padding: 8px 10px;
   border: 1px solid #e6e6e6;
   border-radius: 8px;
@@ -607,6 +607,7 @@
   border-radius: 8px;
   padding: 0 10px;
   margin-top: 8px;
+  font-size: var(--form-font-size);
 }
 .modalActions {
   display: flex;
@@ -723,7 +724,7 @@
     border: 0;
     background: transparent;
     padding: 10px 16px 10px 18px;
-    font-size: 16px;
+    font-size: var(--form-font-size);
     outline: none;
   }
   .searchIcon {
@@ -816,7 +817,7 @@
     border: 1px solid #e5e5e5;
     border-radius: 6px;
     padding: 0 8px;
-    font-size: 12px;
+    font-size: var(--form-font-size);
     width: 80px;
   }
   .legendDescInput {
@@ -825,7 +826,7 @@
     border: 1px solid #e5e5e5;
     border-radius: 6px;
     padding: 0 8px;
-    font-size: 12px;
+    font-size: var(--form-font-size);
   }
   .legendFormBtns {
     display: flex;
@@ -1161,7 +1162,7 @@
   }
   .rowValueInput {
     flex: 1;
-    font-size: 13px;
+    font-size: var(--form-font-size);
     padding: 8px 10px;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
@@ -1175,7 +1176,7 @@
     flex: 1;
     resize: vertical;
     min-height: 72px;
-    font-size: 13px;
+    font-size: var(--form-font-size);
     padding: 8px 10px;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
@@ -1295,6 +1296,7 @@
     border-radius: 8px;
     padding: 0 10px;
     margin-top: 8px;
+    font-size: var(--form-font-size);
   }
   .modalActions {
     display: flex;

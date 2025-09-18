@@ -54,7 +54,7 @@
   
   .inputLabel {
     font-family: 'Pretendard', sans-serif;
-    font-size: 14px;
+    font-size: var(--form-font-size);
     font-weight: 600;
     margin-bottom: 10px;
     display: block;
@@ -67,6 +67,6 @@
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-family: 'Pretendard', sans-serif;
-    font-size: 14px;
+    font-size: var(--form-font-size);
     box-sizing: border-box;
   }

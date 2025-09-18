@@ -32,7 +32,7 @@
   background: none;
   padding: 10px 20px;
   font-family: 'Pretendard', sans-serif;
-  font-size: 16px;
+  font-size: var(--form-font-size);
   outline: none;
 }
 
