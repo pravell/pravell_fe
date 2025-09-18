@@ -373,8 +373,9 @@ export default function PlanDetailPage() {
     const lng = parseMapCoord(place.mapx) ?? parseFloat(place.lng);
     const pinColor = colorHex;
 
-    if (!title || !address || !roadAddress || !mapx || !mapy)
+    if (!title || (!address && !roadAddress) || !mapx || !mapy) {
       return alert("필수 정보가 부족해 저장할 수 없습니다.");
+    }
     if (!Number.isFinite(lat) || !Number.isFinite(lng))
       return alert("좌표 정보가 올바르지 않습니다.");
     if (!/^#[0-9A-Fa-f]{6}$/.test(pinColor))
@@ -393,7 +394,7 @@ export default function PlanDetailPage() {
       nickname: nickTrim || null,
       title,
       address,
-      roadAddress,
+      roadAddress: roadAddress || address,
       hours: Array.isArray(place.hours)
         ? place.hours
         : Array.isArray(place.holiday)
