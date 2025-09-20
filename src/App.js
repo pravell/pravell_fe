@@ -12,6 +12,7 @@ import ChangeNicknamePage from './pages/MyPage/ChangeNicknamePage';
 import PlanDetailPage from './pages/PlanDetailPage/PlanDetailPage';
 import PlanSettingsPage from './pages/PlanSettingsPage/PlanSettingsPage';
 import RouteDetail from './pages/PlanDetailPage/components/RouteDetail';
+import PlanEditPage from './pages/PlanSettingsPage/PlanEditPage';
 import './App.css';
 
 const App = () => {
@@ -33,6 +34,7 @@ const App = () => {
             <Route path="/plan/:planId" element = {<PlanDetailPage />} /> 
             <Route path="/plan/:planId/settings" element={<PlanSettingsPage />} />
             <Route path="/plan/:planId/routes/:routeId" element={<RouteDetail />} />
+            <Route path="/plan/:planId/edit" element={<PlanEditPage />} />
           </Routes>
         </div>
         <TabBarController />

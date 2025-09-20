@@ -2,8 +2,8 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true, 
-  timeout: 15000,        
+  withCredentials: true,
+  timeout: 15000,
 });
 
 const ACCESS_KEY = "accessToken";
@@ -14,7 +14,8 @@ export const getAccessToken = () => localStorage.getItem(ACCESS_KEY) || "";
 export const getRefreshToken = () => localStorage.getItem(REFRESH_KEY) || "";
 export const setTokens = ({ accessToken, refreshToken }) => {
   if (accessToken) localStorage.setItem(ACCESS_KEY, stripBearer(accessToken));
-  if (refreshToken) localStorage.setItem(REFRESH_KEY, stripBearer(refreshToken));
+  if (refreshToken)
+    localStorage.setItem(REFRESH_KEY, stripBearer(refreshToken));
 };
 export const clearTokens = () => {
   localStorage.removeItem(ACCESS_KEY);
@@ -44,23 +45,19 @@ const processQueue = (error, newAccessToken = null) => {
 };
 
 const refreshTokens = async () => {
-  const rt = getRefreshToken(); 
+  const rt = getRefreshToken();
   const url = `${process.env.REACT_APP_API_URL}/v1/auth/refresh`;
 
-  const { data } = await axios.post(
-    url,
-    rt ? { refreshToken: rt } : {},
-    {
-      withCredentials: true, 
-      headers: rt ? { Authorization: `Bearer ${stripBearer(rt)}` } : {},
-      timeout: 15000,
-    }
-  );
+  const { data } = await axios.post(url, rt ? { refreshToken: rt } : {}, {
+    withCredentials: true,
+    headers: rt ? { Authorization: `Bearer ${stripBearer(rt)}` } : {},
+    timeout: 15000,
+  });
 
-  const newAccess =
-    stripBearer(data?.accessToken || data?.access_token || "");
-  const newRefresh =
-    stripBearer(data?.refreshToken || data?.refresh_token || "");
+  const newAccess = stripBearer(data?.accessToken || data?.access_token || "");
+  const newRefresh = stripBearer(
+    data?.refreshToken || data?.refresh_token || ""
+  );
 
   if (!newAccess) {
     throw new Error("REFRESH_RESPONSE_MISSING_ACCESS");
@@ -80,7 +77,9 @@ API.interceptors.response.use(
     const status = error?.response?.status;
 
     if (SHOULD_REFRESH.has(status) && !original._retry) {
-      const isRefreshCall = String(original?.url || "").includes("/v1/auth/refresh");
+      const isRefreshCall = String(original?.url || "").includes(
+        "/v1/auth/refresh"
+      );
       if (isRefreshCall) {
         clearTokens();
         return Promise.reject(error);
@@ -142,7 +141,10 @@ export const getPlaceDetail = (placeId, token) =>
   API.get(`/v1/places/${placeId}`, authHeader(token));
 
 export const searchPlaces = (keyword, token) =>
-  API.get(`/v1/places/search?keyword=${encodeURIComponent(keyword)}`, authHeader(token));
+  API.get(
+    `/v1/places/search?keyword=${encodeURIComponent(keyword)}`,
+    authHeader(token)
+  );
 
 export const savePlaceToPlan = (payload, token) =>
   API.post(`/v1/places`, payload, authHeader(token));
@@ -154,7 +156,10 @@ export const deletePlaces = (ids, token) =>
   API.delete(`/v1/places`, { ...authHeader(token), data: { placeId: ids } });
 
 export const leavePlans = (planIds, token) =>
-  API.delete(`/v1/plans`, { ...authHeader(token), data: { plan_ids: planIds } });
+  API.delete(`/v1/plans`, {
+    ...authHeader(token),
+    data: { planIds: planIds },
+  });
 
 export const createInviteCode = (planId, token) =>
   API.post(`/v1/plans/${planId}/invite-code`, {}, authHeader(token));
@@ -175,7 +180,11 @@ export const patchRoute = (routeId, payload, token) =>
   API.patch(`/v1/routes/${routeId}`, payload, authHeader(token));
 
 export const patchRoutePlace = (routeId, routePlaceId, payload, token) =>
-  API.patch(`/v1/routes/${routeId}/places/${routePlaceId}`, payload, authHeader(token));
+  API.patch(
+    `/v1/routes/${routeId}/places/${routePlaceId}`,
+    payload,
+    authHeader(token)
+  );
 
 export const deleteRoutes = (planId, routeIds, token) =>
   API.delete(`/v1/routes`, {
@@ -199,5 +208,17 @@ export const parseApiError = (err) => {
     "네트워크 또는 서버 오류가 발생했습니다.";
   return { status, code, message };
 };
+
+export const updatePlan = (planId, payload, token) =>
+  API.patch(`/v1/plans/${planId}`, payload, authHeader(token));
+
+export const deletePlanUsers = (planId, userIds, token) =>
+  API.delete(`/v1/plans/${planId}`, {
+    ...authHeader(token),
+    data: { deleteUsers: userIds },
+  });
+
+export const deletePlanPermanent = (planId, token) =>
+  API.delete(`/v1/plans/${planId}/permanent`, authHeader(token));
 
 export default API;

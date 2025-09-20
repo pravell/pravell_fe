@@ -1,11 +1,10 @@
-// src/pages/MainPage/MainPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./MainPage.module.css";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import CreatePlanModal from "../../components/CreatePlanModal/CreatePlanModal";
 import MainPageHeader from "./MainPageHeader";
-import API, { getAccessToken } from "../../services/api"; // ✅ axios 대신 API 사용
+import API, { getAccessToken } from "../../services/api";
 
 const MainPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,7 +16,6 @@ const MainPage = () => {
   useEffect(() => {
     const accessToken = getAccessToken();
     if (accessToken) {
-      // 토큰이 있으면 목록 요청 시도 (만료면 인터셉터가 자동 갱신 후 재시도)
       fetchTravelPlans();
     } else {
       setIsLoggedIn(false);
@@ -27,14 +25,12 @@ const MainPage = () => {
 
   const fetchTravelPlans = async () => {
     try {
-      const { data } = await API.get(`/v1/plans`); // ✅ Authorization 자동 부착 + 자동 리프레시
+      const { data } = await API.get(`/v1/plans`);
       setPlans(data || []);
       setIsLoggedIn(true);
     } catch (error) {
-      // 리프레시도 실패(완전 만료)인 경우에만 여기로 떨어짐
       if (error?.response?.status === 401) {
         setIsLoggedIn(false);
-        // 토큰 정리는 인터셉터가 이미 했음
         navigate("/login");
       } else {
         console.error("플랜 목록 조회 오류:", error);
