@@ -26,10 +26,9 @@ import React, {
   
   import RouteDetail from "./components/RouteDetail";
   
-  // 💡 api.js에서 정의된 함수들을 불러옵니다.
   import {
-    getAccessToken, // 토큰을 가져오기 위해 추가
-    getPlan, // 플랜 상세 정보를 가져오기 위해 추가
+    getAccessToken,
+    getPlan,
     getPlanPlaces,
     getPlaceDetail,
     searchPlaces as apiSearchPlaces,
@@ -38,7 +37,7 @@ import React, {
     deletePlaces,
     parseApiError,
     getRoutePlaces,
-  } from "../../services/api"; // 경로가 맞는지 확인하세요.
+  } from "../../services/api";
   
   export default function PlanDetailPage() {
     const { planId } = useParams();
@@ -200,13 +199,11 @@ import React, {
       const token = getAccessToken();
       if (!token) return;
   
-      // 💡 api.js의 getPlan 함수를 사용하여 API를 호출합니다.
       getPlan(planId, token)
         .then(({ data }) => {
           setCanEdit(Boolean(data?.isOwner) || Boolean(data?.isMember));
         })
         .catch((_) => {
-          // 오류가 발생하면 canEdit를 false로 유지합니다.
           setCanEdit(false);
         });
     }, [planId]);
@@ -279,7 +276,8 @@ import React, {
       setDetailOpen(false);
       setDetailId(null);
       setDetail(null);
-      if (activeTab !== "search" && places.length) addMarkers(places, { onClick: handleSelectPlace });
+      if (activeTab !== "search" && places.length)
+        addMarkers(places, { onClick: handleSelectPlace });
     }, [activeTab, places, addMarkers]);
   
     const savePlace = async () => {
@@ -706,8 +704,9 @@ import React, {
         <PlanDetailHeader
           title={planTitle}
           isLoggedIn={false}
-          // onClickSettings={() => navigate(`/plan/${planId}/settings`)}
-          onClickSettings={canEdit ? () => navigate(`/plan/${planId}/settings`) : undefined}
+          onClickSettings={
+            canEdit ? () => navigate(`/plan/${planId}/settings`) : undefined
+          }
         />
   
         <SearchBar

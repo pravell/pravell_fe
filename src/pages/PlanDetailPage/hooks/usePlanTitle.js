@@ -10,7 +10,7 @@ export default function usePlanTitle({ planId, initialTitle, navigate }) {
 
     try {
       const { data } = await getPlan(planId, token);
-      const name = data?.planName || data?.title || null;
+      const name = data?.name || null;
       if (name) setPlanTitle(name);
     } catch (err) {
       const { status, code, message } = parseApiError(err);
