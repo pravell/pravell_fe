@@ -26,7 +26,7 @@ export default function PlaceDetail({
   saving,
   onDelete,
   deleting,
-  pinColorOptions = [], 
+  pinColorOptions = [],
 }) {
   const mainTitle = detail?.title || detail?.nickname || "장소 상세";
   const subNick = detail?.title && detail?.nickname ? detail.nickname : "";
@@ -261,12 +261,25 @@ export default function PlaceDetail({
           {detail.description && (
             <div className={styles.memo}>{detail.description}</div>
           )}
-
+          {/* ✅ '지도에서 보기' 버튼 옆에 '네이버 지도로 이동' 버튼 추가 */}
           <div style={{ marginTop: 12 }}>
             <button className={styles.legendSaveBtn} onClick={onFlyTo}>
               지도에서 보기
             </button>
           </div>
+          <div style={{ marginTop: 12 }}>
+          {detail.mapUrl && (
+              <a 
+                href={detail.mapUrl} 
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.naverLink}
+                style={{ marginLeft: '8px' }}
+              >
+                네이버 지도로 이동
+              </a>
+            )}
+            </div>
         </>
       )}
     </div>
