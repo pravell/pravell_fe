@@ -843,6 +843,7 @@ import React, {
                   loadRoutes();
                 }
               }}
+              setRoutePlaces={setRoutePlaces}
             />
           ) : (
             <>
@@ -867,4 +868,3 @@ import React, {
       </div>
     );
   }
-  

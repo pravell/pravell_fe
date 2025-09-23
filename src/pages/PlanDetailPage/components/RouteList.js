@@ -1,4 +1,3 @@
-// src/pages/PlanDetail/components/RouteList.jsx
 import React from "react";
 import styles from "../PlanDetailPage.module.css";
 
