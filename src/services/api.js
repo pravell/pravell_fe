@@ -12,10 +12,8 @@ const stripBearer = (t = "") => t.replace(/^Bearer\s+/i, "");
 
 export const getAccessToken = () => localStorage.getItem(ACCESS_KEY) || "";
 export const getRefreshToken = () => localStorage.getItem(REFRESH_KEY) || "";
-export const setTokens = ({ accessToken, refreshToken }) => {
+export const setTokens = ({ accessToken }) => {
   if (accessToken) localStorage.setItem(ACCESS_KEY, stripBearer(accessToken));
-  if (refreshToken)
-    localStorage.setItem(REFRESH_KEY, stripBearer(refreshToken));
 };
 export const clearTokens = () => {
   localStorage.removeItem(ACCESS_KEY);
@@ -45,25 +43,20 @@ const processQueue = (error, newAccessToken = null) => {
 };
 
 const refreshTokens = async () => {
-  const rt = getRefreshToken();
   const url = `${process.env.REACT_APP_API_URL}/v1/auth/refresh`;
 
-  const { data } = await axios.post(url, rt ? { refreshToken: rt } : {}, {
+  const { data } = await axios.post(url, null, {
     withCredentials: true,
-    headers: rt ? { Authorization: `Bearer ${stripBearer(rt)}` } : {},
     timeout: 15000,
   });
 
   const newAccess = stripBearer(data?.accessToken || data?.access_token || "");
-  const newRefresh = stripBearer(
-    data?.refreshToken || data?.refresh_token || ""
-  );
 
   if (!newAccess) {
     throw new Error("REFRESH_RESPONSE_MISSING_ACCESS");
   }
 
-  setTokens({ accessToken: newAccess, refreshToken: newRefresh });
+  setTokens({ accessToken: newAccess });
   API.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
   return newAccess;
 };

@@ -1,4 +1,3 @@
-// src/pages/MyPage/MyPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './MyPage.module.css';
@@ -6,7 +5,6 @@ import CustomButton from '../../components/CustomButton/CustomButton';
 import Header from '../../components/Header/Header';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
 
-// ✅ 공용 API 인스턴스(자동 토큰 리프레시) 사용
 import API, { clearTokens } from '../../services/api';
 
 const MyPage = () => {
@@ -20,15 +18,11 @@ const MyPage = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        // ✅ Authorization 자동 부착 + 만료 시 자동 리프레시 시도
         const { data } = await API.get('/v1/users/me');
         setUser(data);
         setIsLoggedIn(true);
       } catch (error) {
-        // 여기까지 왔다는 건 리프레시도 실패(완전 만료)한 케이스일 가능성이 높음
         setIsLoggedIn(false);
-        // 필요하면 안내 문구 추가 가능
-        // alert('로그인이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.');
         navigate('/login');
       } finally {
         setIsLoading(false);
@@ -40,9 +34,8 @@ const MyPage = () => {
 
   const handleLogout = async () => {
     try {
-      await API.post('/v1/auth/sign-out'); // 서버에서 세션/리프레시 토큰 정리
+      await API.post('/v1/auth/sign-out'); 
     } catch (error) {
-      // 로그아웃 API 실패해도 클라이언트 토큰은 지워서 안전하게 로그아웃 처리
       console.error('로그아웃 API 호출 실패:', error);
     } finally {
       clearTokens();
@@ -58,8 +51,6 @@ const MyPage = () => {
       navigate('/login');
     } catch (error) {
       if (error?.response?.status === 401) {
-        // 리프레시도 실패해서 여기로 떨어졌다면 이미 인터셉터에서 토큰 정리됐을 수 있음
-        // 안내만 하고 로그인으로 이동
         alert('로그인이 만료되었거나 권한이 없습니다. 다시 로그인해주세요.');
         clearTokens();
         navigate('/login');
