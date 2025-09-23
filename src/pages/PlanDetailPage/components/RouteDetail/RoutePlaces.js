@@ -197,6 +197,15 @@ export default function RoutePlaces({
                       >{`${editDesc.length}/50`}</span>
                     </div>
                   </div>
+                  <div className={styles.addField}>
+                    <div className={styles.addLabel}>순서</div>
+                    <input
+                      className={styles.rowValueInput}
+                      value={editSeq}
+                      onChange={(e) => setEditSeq(e.target.value)}
+                      placeholder="숫자"
+                    />
+                  </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <CustomButton
                       text={placeSaving ? "저장 중..." : "저장"}
