@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import CustomButton from "../../../../components/CustomButton/CustomButton";
 
 export default function RoutePlaces({
@@ -26,15 +26,17 @@ export default function RoutePlaces({
   onUpdateSequence,
 }) {
   const listRef = useRef(null);
-
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
-
   const isTouchDragging = useRef(false);
+  const [pressIndex, setPressIndex] = useState(null);
 
-  const handleDragStart = (_e, index) => {
+  const handleDragStart = (e, index) => {
     dragItem.current = index;
+    setPressIndex(index);
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
   };
+
   const handleDragEnter = (_e, index) => {
     dragOverItem.current = index;
   };
@@ -44,13 +46,14 @@ export default function RoutePlaces({
     dragItem.current = index;
     dragOverItem.current = index;
     isTouchDragging.current = true;
+    setPressIndex(index);
   };
 
   const getIndexFromTouchPoint = (touch) => {
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const li = el && el.closest?.('li[data-index]');
+    const li = el && el.closest?.("li[data-index]");
     if (!li || !listRef.current?.contains(li)) return null;
-    const idx = Number(li.getAttribute('data-index'));
+    const idx = Number(li.getAttribute("data-index"));
     return Number.isFinite(idx) ? idx : null;
   };
 
@@ -63,13 +66,14 @@ export default function RoutePlaces({
     if (over !== null) dragOverItem.current = over;
   };
 
-  const handleSort = () => {
+  const finishSort = () => {
     const from = dragItem.current;
     const to = dragOverItem.current;
 
     dragItem.current = null;
     dragOverItem.current = null;
     isTouchDragging.current = false;
+    setPressIndex(null);
 
     if (from === null || to === null || from === to) return;
 
@@ -81,10 +85,20 @@ export default function RoutePlaces({
     onUpdateSequence(next);
   };
 
-  const handleTouchEnd = () => handleSort();
+  const handleDragEnd = () => finishSort();
+  const handleTouchEnd = () => finishSort();
+  const handleTouchCancel = () => {
+    dragItem.current = null;
+    dragOverItem.current = null;
+    isTouchDragging.current = false;
+    setPressIndex(null);
+  };
 
   if (loading) return <div className={styles.empty}>불러오는 중…</div>;
-  if (!places?.length) return <div className={styles.routeEmpty}>선택된 날짜의 장소가 없습니다.</div>;
+  if (!places?.length)
+    return (
+      <div className={styles.routeEmpty}>선택된 날짜의 장소가 없습니다.</div>
+    );
 
   return (
     <ul
@@ -93,36 +107,46 @@ export default function RoutePlaces({
       style={{
         maxHeight: places.length > 5 ? maxListHeight : "none",
         overflowY: places.length > 5 ? "auto" : "visible",
-        touchAction: "none",         
+        touchAction: "none",
         WebkitUserSelect: "none",
         userSelect: "none",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
     >
       {places.map((p, idx) => {
         const checked = selectedPlaceIds.has(p.routePlaceId);
         const isEditing = editPlaceId === p.routePlaceId;
 
+        const activeCls =
+          pressIndex === idx && manageMode ? ` ${styles.routeItemActive}` : "";
+        const editingCls =
+          isEditing && manageMode ? ` ${styles.routeItemEditing}` : "";
+
         return (
           <li
             key={p.routePlaceId ?? `${p.lat}-${p.lng}-${p.sequence}`}
-            data-index={idx}                                
-            className={`${styles.routeItem} ${styles.routeItemRow}`}
+            data-index={idx}
+            className={`${styles.routeItem} ${styles.routeItemRow}${activeCls}${editingCls}`}
             ref={idx === 0 ? firstItemRef : null}
             onClick={manageMode ? undefined : () => onOpenPlace?.(p.pinPlaceId)}
-
             draggable={manageMode}
             onDragStart={(e) => handleDragStart(e, idx)}
             onDragEnter={(e) => handleDragEnter(e, idx)}
-            onDragEnd={handleSort}
+            onDragEnd={handleDragEnd}
             onDragOver={(e) => e.preventDefault()}
-
             onTouchStart={(e) => handleTouchStart(e, idx)}
           >
             <div className={styles.routeLeft}>
               {manageMode ? (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={checked}
@@ -131,14 +155,32 @@ export default function RoutePlaces({
                   />
                   <div className={styles.dragHandle}>
                     <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
-                      <path d="M4 6H20" stroke="#000" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M4 12H20" stroke="#000" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M4 18H20" stroke="#000" strokeWidth="2" strokeLinecap="round" />
+                      <path
+                        d="M4 6H20"
+                        stroke="#000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M4 12H20"
+                        stroke="#000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M4 18H20"
+                        stroke="#000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </div>
                 </div>
               ) : (
-                <div className={styles.routeSeq} style={{ color: "var(--primary-color)" }}>
+                <div
+                  className={styles.routeSeq}
+                  style={{ color: "var(--primary-color)" }}
+                >
                   {idx + 1 ?? ""}
                 </div>
               )}
@@ -146,8 +188,12 @@ export default function RoutePlaces({
 
             <div className={styles.routeCenter}>
               <div className={styles.routeTitleRow}>
-                <span className={styles.routeTitleTxt}>{p.title || "(삭제됨)"}</span>
-                {p.nickname ? <span className={styles.routeNickTxt}>{p.nickname}</span> : null}
+                <span className={styles.routeTitleTxt}>
+                  {p.title || "(삭제됨)"}
+                </span>
+                {p.nickname ? (
+                  <span className={styles.routeNickTxt}>{p.nickname}</span>
+                ) : null}
               </div>
               <div className={styles.routeAddr}>{p.address || ""}</div>
               <div className={styles.routeAddr}>{p.roadAddress || ""}</div>
@@ -164,7 +210,9 @@ export default function RoutePlaces({
                         onChange={(e) => setEditNick(e.target.value)}
                         placeholder="(선택) 2~20자"
                       />
-                      <span className={styles.charCount}>{`${editNick.length}/20`}</span>
+                      <span
+                        className={styles.charCount}
+                      >{`${editNick.length}/20`}</span>
                     </div>
                   </div>
                   <div className={styles.addField}>
@@ -177,7 +225,9 @@ export default function RoutePlaces({
                         onChange={(e) => setEditDesc(e.target.value)}
                         placeholder="(선택) 2~50자"
                       />
-                      <span className={styles.charCount}>{`${editDesc.length}/50`}</span>
+                      <span
+                        className={styles.charCount}
+                      >{`${editDesc.length}/50`}</span>
                     </div>
                   </div>
                   <div className={styles.addField}>
@@ -217,7 +267,9 @@ export default function RoutePlaces({
 
             <div className={styles.routeRight}>
               {!manageMode ? (
-                <span className={styles.routeDescTxt}>{p.description || ""}</span>
+                <span className={styles.routeDescTxt}>
+                  {p.description || ""}
+                </span>
               ) : (
                 <CustomButton
                   text={isEditing ? "수정 중" : "수정"}
