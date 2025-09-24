@@ -16,10 +16,10 @@ export default function RoutePlaces({
   cancelEditPlace,
   editNick,
   editDesc,
-  editDate,      
+  editDate,
   setEditNick,
   setEditDesc,
-  setEditDate,   
+  setEditDate,
   placeSaving,
   onSaveEdit,
   setPlaces,
@@ -191,6 +191,9 @@ export default function RoutePlaces({
               </div>
               <div className={styles.routeAddr}>{p.address || ""}</div>
               <div className={styles.routeAddr}>{p.roadAddress || ""}</div>
+              {/* ✅ p.description이 있을 때만 span 태그를 렌더링합니다. */}
+              {!manageMode && p.description && <span className={styles.routeDescTxt}>{p.description}</span>}
+              
 
               {manageMode && isEditing && (
                 <div style={{ marginTop: 8 }}>
@@ -259,9 +262,7 @@ export default function RoutePlaces({
             </div>
 
             <div className={styles.routeRight}>
-              {!manageMode ? (
-                <span className={styles.routeDescTxt}>{p.description || ""}</span>
-              ) : (
+              {manageMode && (
                 <CustomButton
                   text={isEditing ? "수정 중" : "수정"}
                   onClick={isEditing ? undefined : () => openEditPlace(p)}
