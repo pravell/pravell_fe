@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import CustomButton from "../../../../components/CustomButton/CustomButton";
 
 export default function RoutePlaces({
@@ -25,73 +25,83 @@ export default function RoutePlaces({
   setPlaces,
   onUpdateSequence,
 }) {
-  const listRef = useRef(null);
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
-  const isTouchDragging = useRef(false);
-  const [pressIndex, setPressIndex] = useState(null);
 
-  const handleDragStart = (e, index) => {
-    dragItem.current = index;
-    setPressIndex(index);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+  const [draggingIdx, setDraggingIdx] = useState(null);
+  const touchDragActive = useRef(false);
+
+  const commitSort = useCallback(() => {
+    if (
+      dragItem.current === null ||
+      dragOverItem.current === null ||
+      dragItem.current === dragOverItem.current
+    ) {
+      dragItem.current = null;
+      dragOverItem.current = null;
+      setDraggingIdx(null);
+      return;
+    }
+    let _places = [...places];
+    const dragged = _places.splice(dragItem.current, 1)[0];
+    _places.splice(dragOverItem.current, 0, dragged);
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setDraggingIdx(null);
+
+    setPlaces(_places);
+    onUpdateSequence(_places);
+  }, [places, setPlaces, onUpdateSequence]);
+
+  const cleanupTouch = () => {
+    touchDragActive.current = false;
+    window.removeEventListener("touchmove", onTouchMove, { capture: true });
+    window.removeEventListener("touchend", onTouchEnd, { capture: true });
   };
 
-  const handleDragEnter = (_e, index) => {
-    dragOverItem.current = index;
-  };
-
-  const handleTouchStart = (e, index) => {
-    if (!manageMode) return;
-    dragItem.current = index;
-    dragOverItem.current = index;
-    isTouchDragging.current = true;
-    setPressIndex(index);
-  };
-
-  const getIndexFromTouchPoint = (touch) => {
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const li = el && el.closest?.("li[data-index]");
-    if (!li || !listRef.current?.contains(li)) return null;
-    const idx = Number(li.getAttribute("data-index"));
-    return Number.isFinite(idx) ? idx : null;
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isTouchDragging.current) return;
+  const onTouchMove = (e) => {
+    if (!touchDragActive.current) return;
     e.preventDefault();
     const t = e.touches?.[0];
     if (!t) return;
-    const over = getIndexFromTouchPoint(t);
-    if (over !== null) dragOverItem.current = over;
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    const li = el?.closest?.("li[data-idx]");
+    if (li) {
+      const idx = Number(li.dataset.idx);
+      if (!Number.isNaN(idx)) {
+        dragOverItem.current = idx;
+      }
+    }
   };
 
-  const finishSort = () => {
-    const from = dragItem.current;
-    const to = dragOverItem.current;
-
-    dragItem.current = null;
-    dragOverItem.current = null;
-    isTouchDragging.current = false;
-    setPressIndex(null);
-
-    if (from === null || to === null || from === to) return;
-
-    const next = [...places];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-
-    setPlaces(next);
-    onUpdateSequence(next);
+  const onTouchEnd = () => {
+    commitSort();
+    cleanupTouch();
   };
 
-  const handleDragEnd = () => finishSort();
-  const handleTouchEnd = () => finishSort();
-  const handleTouchCancel = () => {
-    dragItem.current = null;
-    dragOverItem.current = null;
-    isTouchDragging.current = false;
-    setPressIndex(null);
+  const startTouchDragFromHandle = (idx, e) => {
+    if (!manageMode) return;
+    dragItem.current = idx;
+    dragOverItem.current = idx;
+    setDraggingIdx(idx);
+    touchDragActive.current = true;
+
+    window.addEventListener("touchmove", onTouchMove, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("touchend", onTouchEnd, { capture: true });
+  };
+
+  const handleDragStart = (_, index) => {
+    dragItem.current = index;
+    setDraggingIdx(index);
+  };
+  const handleDragEnter = (_, index) => {
+    dragOverItem.current = index;
+  };
+  const handleDragEnd = () => {
+    commitSort();
   };
 
   if (loading) return <div className={styles.empty}>불러오는 중…</div>;
@@ -102,33 +112,25 @@ export default function RoutePlaces({
 
   return (
     <ul
-      ref={listRef}
       className={styles.routeList}
       style={{
         maxHeight: places.length > 5 ? maxListHeight : "none",
         overflowY: places.length > 5 ? "auto" : "visible",
-        touchAction: "none",
-        WebkitUserSelect: "none",
-        userSelect: "none",
+        WebkitOverflowScrolling: "touch",
       }}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchCancel}
     >
       {places.map((p, idx) => {
         const checked = selectedPlaceIds.has(p.routePlaceId);
         const isEditing = editPlaceId === p.routePlaceId;
-
-        const activeCls =
-          pressIndex === idx && manageMode ? ` ${styles.routeItemActive}` : "";
-        const editingCls =
-          isEditing && manageMode ? ` ${styles.routeItemEditing}` : "";
+        const pressing = draggingIdx === idx;
 
         return (
           <li
             key={p.routePlaceId ?? `${p.lat}-${p.lng}-${p.sequence}`}
-            data-index={idx}
-            className={`${styles.routeItem} ${styles.routeItemRow}${activeCls}${editingCls}`}
+            data-idx={idx}
+            className={`${styles.routeItem} ${styles.routeItemRow} ${
+              pressing ? styles.routeItemDragging : ""
+            }`}
             ref={idx === 0 ? firstItemRef : null}
             onClick={manageMode ? undefined : () => onOpenPlace?.(p.pinPlaceId)}
             draggable={manageMode}
@@ -136,25 +138,31 @@ export default function RoutePlaces({
             onDragEnter={(e) => handleDragEnter(e, idx)}
             onDragEnd={handleDragEnd}
             onDragOver={(e) => e.preventDefault()}
-            onTouchStart={(e) => handleTouchStart(e, idx)}
+            style={{ touchAction: "pan-y" }}
           >
             <div className={styles.routeLeft}>
               {manageMode ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleSelectPlace(p.routePlaceId)}
-                    style={{ marginBottom: 4 }}
                   />
-                  <div className={styles.dragHandle}>
-                    <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+                  <div
+                    className={styles.dragHandle}
+                    onTouchStart={(e) => startTouchDragFromHandle(idx, e)}
+                    onMouseDown={() => setDraggingIdx(idx)}
+                    onMouseUp={() => setDraggingIdx(null)}
+                    role="button"
+                    aria-label="순서 변경"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                    >
                       <path
                         d="M4 6H20"
                         stroke="#000"
