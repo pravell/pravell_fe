@@ -724,7 +724,7 @@ export default function PlanDetailPage() {
 
       <div
         className={`${styles.sheet} ${collapsed ? styles.sheetCollapsed : ""}`}
-        style={expanded ? { maxHeight: "82vh" } : undefined}
+        style={expanded ? { maxHeight: "60vh" } : undefined}
       >
         <div
           ref={handleRef}
