@@ -16,10 +16,10 @@ export default function RoutePlaces({
   cancelEditPlace,
   editNick,
   editDesc,
-  editSeq,
+  editDate,      
   setEditNick,
   setEditDesc,
-  setEditSeq,
+  setEditDate,   
   placeSaving,
   onSaveEdit,
   setPlaces,
@@ -207,6 +207,7 @@ export default function RoutePlaces({
                       <span className={styles.charCount}>{`${editNick.length}/20`}</span>
                     </div>
                   </div>
+
                   <div className={styles.addField}>
                     <div className={styles.addLabel}>메모</div>
                     <div className={styles.inputWrapper}>
@@ -220,15 +221,17 @@ export default function RoutePlaces({
                       <span className={styles.charCount}>{`${editDesc.length}/50`}</span>
                     </div>
                   </div>
+
                   <div className={styles.addField}>
-                    <div className={styles.addLabel}>순서</div>
+                    <div className={styles.addLabel}>날짜</div>
                     <input
+                      type="date"
                       className={styles.rowValueInput}
-                      value={editSeq}
-                      onChange={(e) => setEditSeq(e.target.value)}
-                      placeholder="숫자"
+                      value={editDate || ""}
+                      onChange={(e) => setEditDate(e.target.value)}
                     />
                   </div>
+
                   <div style={{ display: "flex", gap: 8 }}>
                     <CustomButton
                       text={placeSaving ? "저장 중..." : "저장"}

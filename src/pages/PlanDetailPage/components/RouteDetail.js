@@ -85,6 +85,7 @@ export default function RouteDetail({
   const [editNick, setEditNick] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editSeq, setEditSeq] = useState("");
+  const [editDate, setEditDate] = useState("");
   const [placeSaving, setPlaceSaving] = useState(false);
 
   const [confirmRouteDeleteOpen, setConfirmRouteDeleteOpen] = useState(false);
@@ -250,35 +251,51 @@ export default function RouteDetail({
     setEditPlaceId(p.routePlaceId);
     setEditNick(p.nickname || "");
     setEditDesc(p.description || "");
-    setEditSeq(String(p.sequence ?? ""));
+    const iso = (p.date || "").includes(".")
+      ? (p.date || "").replace(/\./g, "-")
+      : (p.date || "");
+    setEditDate(iso); 
   };
+
   const cancelEditPlace = () => {
     setEditPlaceId(null);
     setEditNick("");
     setEditDesc("");
-    setEditSeq("");
+    setEditSeq("");    
+    setEditDate("");   
   };
+
   const handlePatchPlace = async () => {
     if (!routeId || !editPlaceId) return;
     const token = localStorage.getItem("accessToken");
     if (!token) return alert("로그인이 필요합니다.");
-
+  
     const body = {};
     const nick = editNick.trim();
     const desc = editDesc.trim();
-    const seq = editSeq.trim();
-
+    const dateStr = editDate.trim();
+  
     if (nick && (nick.length < 2 || nick.length > 20))
       return alert("별명은 2~20자여야 합니다.");
     if (desc && (desc.length < 2 || desc.length > 50))
       return alert("메모는 2~50자여야 합니다.");
-    if (seq && !/^\d+$/.test(seq)) return alert("순서는 숫자여야 합니다.");
-
+  
     if (nick !== "") body.nickname = nick;
     if (desc !== "") body.description = desc;
-    if (seq !== "") body.sequence = Number(seq);
+  
+    if (dateStr) {
+      const current = (allPlaces || []).find(
+        (x) => x.routePlaceId === editPlaceId
+      )?.date || "";
+      const currentIso = current.includes(".") ? current.replace(/\./g, "-") : current;
+  
+      if (currentIso !== dateStr) {
+        body.date = dateStr; 
+      }
+    }
+  
     if (!Object.keys(body).length) return alert("변경된 내용이 없습니다.");
-
+  
     try {
       setPlaceSaving(true);
       await patchRoutePlace(routeId, editPlaceId, body, token);
@@ -435,6 +452,8 @@ export default function RouteDetail({
               editSeq={editSeq}
               setEditNick={setEditNick}
               setEditDesc={setEditDesc}
+              setEditDate={setEditDate}   
+              editDate={editDate}   
               setEditSeq={setEditSeq}
               placeSaving={placeSaving}
               onSaveEdit={handlePatchPlace}
