@@ -28,7 +28,7 @@ export default function RoutePlaces({
 }) {
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
-  const touchStartPosition = useRef(null);
+  const longPressTimeout = useRef(null);
 
   const handleDragStart = (e, index) => {
     dragItem.current = index;
@@ -39,18 +39,31 @@ export default function RoutePlaces({
   };
 
   const handleTouchStart = (e, index) => {
-    dragItem.current = index;
-    touchStartPosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    longPressTimeout.current = setTimeout(() => {
+      e.target.parentNode.draggable = true;
+      dragItem.current = index;
+      if (e.target.setPointerCapture) {
+        e.target.setPointerCapture(e.pointerId);
+      }
+    }, 500); 
+    e.preventDefault(); 
   };
 
   const handleTouchMove = (e, index) => {
-    if (touchStartPosition.current) {
-      const dx = Math.abs(e.touches[0].clientX - touchStartPosition.current.x);
-      const dy = Math.abs(e.touches[0].clientY - touchStartPosition.current.y);
-      if (dx > 5 || dy > 5) {
-        dragOverItem.current = index;
-      }
+    clearTimeout(longPressTimeout.current);
+    dragOverItem.current = index;
+  };
+
+  const handleTouchEnd = () => {
+    clearTimeout(longPressTimeout.current);
+    if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+      handleSort();
     }
+    // Reset draggable state for all list items
+    const listItems = document.querySelectorAll(`.${styles.routeItem}`);
+    listItems.forEach(item => {
+      item.draggable = false;
+    });
   };
 
   const handleSort = () => {
@@ -66,7 +79,6 @@ export default function RoutePlaces({
     _places.splice(dragOverItem.current, 0, draggedItem);
     dragItem.current = null;
     dragOverItem.current = null;
-    touchStartPosition.current = null;
 
     setPlaces(_places);
     onUpdateSequence(_places);
@@ -102,7 +114,7 @@ export default function RoutePlaces({
             onDragEnd={handleSort}
             onTouchStart={(e) => handleTouchStart(e, idx)}
             onTouchMove={(e) => handleTouchMove(e, idx)}
-            onTouchEnd={handleSort}
+            onTouchEnd={handleTouchEnd}
             onDragOver={(e) => e.preventDefault()}
           >
             <div className={styles.routeLeft}>
@@ -157,7 +169,7 @@ export default function RoutePlaces({
                   className={styles.routeSeq}
                   style={{ color: "var(--primary-color)" }}
                 >
-                  {idx + 1 ?? ""}
+                  {p.sequence + 1 ?? ""}
                 </div>
               )}
             </div>
