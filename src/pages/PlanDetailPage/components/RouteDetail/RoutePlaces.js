@@ -28,6 +28,7 @@ export default function RoutePlaces({
 }) {
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
+  const touchStartPosition = useRef(null);
 
   const handleDragStart = (e, index) => {
     dragItem.current = index;
@@ -39,10 +40,17 @@ export default function RoutePlaces({
 
   const handleTouchStart = (e, index) => {
     dragItem.current = index;
+    touchStartPosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   };
 
   const handleTouchMove = (e, index) => {
-    dragOverItem.current = index;
+    if (touchStartPosition.current) {
+      const dx = Math.abs(e.touches[0].clientX - touchStartPosition.current.x);
+      const dy = Math.abs(e.touches[0].clientY - touchStartPosition.current.y);
+      if (dx > 5 || dy > 5) {
+        dragOverItem.current = index;
+      }
+    }
   };
 
   const handleSort = () => {
@@ -58,6 +66,7 @@ export default function RoutePlaces({
     _places.splice(dragOverItem.current, 0, draggedItem);
     dragItem.current = null;
     dragOverItem.current = null;
+    touchStartPosition.current = null;
 
     setPlaces(_places);
     onUpdateSequence(_places);
@@ -148,7 +157,7 @@ export default function RoutePlaces({
                   className={styles.routeSeq}
                   style={{ color: "var(--primary-color)" }}
                 >
-                  {p.sequence + 1 ?? ""}
+                  {idx + 1 ?? ""}
                 </div>
               )}
             </div>
