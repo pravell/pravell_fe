@@ -1617,47 +1617,43 @@
 
 .dragHandle {
   cursor: grab;
-  color: #888;
   padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  touch-action: none;
+  color: #888;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .routeItem {
   transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  touch-action: pan-y;
 }
-
 .routeItemActive {
   background: #f6f8ff;
   transform: scale(0.99);
   box-shadow: inset 0 0 0 2px rgba(62, 102, 211, 0.25);
 }
-
 .routeItemEditing {
   background: #fffef2;
   box-shadow: inset 0 0 0 2px rgba(162, 197, 21, 0.35);
 }
 
-.dragHandle {
-  cursor: grab;
-}
-
-.dragHandle:active {
-  cursor: grabbing;
+.routeItemDragging {
+  transform: scale(0.98);
+  opacity: 0.95;
+  will-change: transform, opacity;
+  transition: transform 120ms ease, opacity 120ms ease;
 }
 
 .routeList {
   -webkit-overflow-scrolling: touch;
-}
-
-.routeItem {
-  touch-action: pan-y;
-}
-
-.dragHandle {
-  touch-action: none;
-}
-
-.routeItemDragging {
-  transform: scale(0.98);
-  opacity: 0.95;
-  transition: transform 120ms ease, opacity 120ms ease;
 }

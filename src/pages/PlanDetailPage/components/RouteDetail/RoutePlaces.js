@@ -42,15 +42,16 @@ export default function RoutePlaces({
       setDraggingIdx(null);
       return;
     }
-    let _places = [...places];
-    const dragged = _places.splice(dragItem.current, 1)[0];
-    _places.splice(dragOverItem.current, 0, dragged);
+    const next = [...places];
+    const dragged = next.splice(dragItem.current, 1)[0];
+    next.splice(dragOverItem.current, 0, dragged);
+
     dragItem.current = null;
     dragOverItem.current = null;
     setDraggingIdx(null);
 
-    setPlaces(_places);
-    onUpdateSequence(_places);
+    setPlaces(next);
+    onUpdateSequence(next);
   }, [places, setPlaces, onUpdateSequence]);
 
   const cleanupTouch = () => {
@@ -68,9 +69,7 @@ export default function RoutePlaces({
     const li = el?.closest?.("li[data-idx]");
     if (li) {
       const idx = Number(li.dataset.idx);
-      if (!Number.isNaN(idx)) {
-        dragOverItem.current = idx;
-      }
+      if (!Number.isNaN(idx)) dragOverItem.current = idx;
     }
   };
 
@@ -79,7 +78,7 @@ export default function RoutePlaces({
     cleanupTouch();
   };
 
-  const startTouchDragFromHandle = (idx, e) => {
+  const startTouchDragFromHandle = (idx) => {
     if (!manageMode) return;
     dragItem.current = idx;
     dragOverItem.current = idx;
@@ -95,6 +94,7 @@ export default function RoutePlaces({
 
   const handleDragStart = (_, index) => {
     dragItem.current = index;
+    dragOverItem.current = index;
     setDraggingIdx(index);
   };
   const handleDragEnter = (_, index) => {
@@ -106,9 +106,7 @@ export default function RoutePlaces({
 
   if (loading) return <div className={styles.empty}>불러오는 중…</div>;
   if (!places?.length)
-    return (
-      <div className={styles.routeEmpty}>선택된 날짜의 장소가 없습니다.</div>
-    );
+    return <div className={styles.routeEmpty}>선택된 날짜의 장소가 없습니다.</div>;
 
   return (
     <ul
@@ -122,15 +120,19 @@ export default function RoutePlaces({
       {places.map((p, idx) => {
         const checked = selectedPlaceIds.has(p.routePlaceId);
         const isEditing = editPlaceId === p.routePlaceId;
-        const pressing = draggingIdx === idx;
+        const isDragging = draggingIdx === idx;
 
         return (
           <li
             key={p.routePlaceId ?? `${p.lat}-${p.lng}-${p.sequence}`}
             data-idx={idx}
-            className={`${styles.routeItem} ${styles.routeItemRow} ${
-              pressing ? styles.routeItemDragging : ""
-            }`}
+            className={[
+              styles.routeItem,
+              styles.routeItemRow,
+              isDragging ? styles.routeItemActive : "",
+              isDragging ? styles.routeItemDragging : "",
+              manageMode && isEditing ? styles.routeItemEditing : "",
+            ].join(" ")}
             ref={idx === 0 ? firstItemRef : null}
             onClick={manageMode ? undefined : () => onOpenPlace?.(p.pinPlaceId)}
             draggable={manageMode}
@@ -142,17 +144,23 @@ export default function RoutePlaces({
           >
             <div className={styles.routeLeft}>
               {manageMode ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleSelectPlace(p.routePlaceId)}
+                    style={{ marginBottom: 4 }}
                   />
                   <div
                     className={styles.dragHandle}
-                    onTouchStart={(e) => startTouchDragFromHandle(idx, e)}
+                    onTouchStart={() => startTouchDragFromHandle(idx)}
                     onMouseDown={() => setDraggingIdx(idx)}
-                    onMouseUp={() => setDraggingIdx(null)}
                     role="button"
                     aria-label="순서 변경"
                   >
@@ -163,32 +171,14 @@ export default function RoutePlaces({
                       width="24"
                       height="24"
                     >
-                      <path
-                        d="M4 6H20"
-                        stroke="#000"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M4 12H20"
-                        stroke="#000"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M4 18H20"
-                        stroke="#000"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
+                      <path d="M4 6H20" stroke="#000" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M4 12H20" stroke="#000" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M4 18H20" stroke="#000" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </div>
                 </div>
               ) : (
-                <div
-                  className={styles.routeSeq}
-                  style={{ color: "var(--primary-color)" }}
-                >
+                <div className={styles.routeSeq} style={{ color: "var(--primary-color)" }}>
                   {idx + 1 ?? ""}
                 </div>
               )}
@@ -196,12 +186,8 @@ export default function RoutePlaces({
 
             <div className={styles.routeCenter}>
               <div className={styles.routeTitleRow}>
-                <span className={styles.routeTitleTxt}>
-                  {p.title || "(삭제됨)"}
-                </span>
-                {p.nickname ? (
-                  <span className={styles.routeNickTxt}>{p.nickname}</span>
-                ) : null}
+                <span className={styles.routeTitleTxt}>{p.title || "(삭제됨)"}</span>
+                {p.nickname ? <span className={styles.routeNickTxt}>{p.nickname}</span> : null}
               </div>
               <div className={styles.routeAddr}>{p.address || ""}</div>
               <div className={styles.routeAddr}>{p.roadAddress || ""}</div>
@@ -218,9 +204,7 @@ export default function RoutePlaces({
                         onChange={(e) => setEditNick(e.target.value)}
                         placeholder="(선택) 2~20자"
                       />
-                      <span
-                        className={styles.charCount}
-                      >{`${editNick.length}/20`}</span>
+                      <span className={styles.charCount}>{`${editNick.length}/20`}</span>
                     </div>
                   </div>
                   <div className={styles.addField}>
@@ -233,9 +217,7 @@ export default function RoutePlaces({
                         onChange={(e) => setEditDesc(e.target.value)}
                         placeholder="(선택) 2~50자"
                       />
-                      <span
-                        className={styles.charCount}
-                      >{`${editDesc.length}/50`}</span>
+                      <span className={styles.charCount}>{`${editDesc.length}/50`}</span>
                     </div>
                   </div>
                   <div className={styles.addField}>
@@ -275,9 +257,7 @@ export default function RoutePlaces({
 
             <div className={styles.routeRight}>
               {!manageMode ? (
-                <span className={styles.routeDescTxt}>
-                  {p.description || ""}
-                </span>
+                <span className={styles.routeDescTxt}>{p.description || ""}</span>
               ) : (
                 <CustomButton
                   text={isEditing ? "수정 중" : "수정"}
