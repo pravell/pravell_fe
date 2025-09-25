@@ -1660,3 +1660,10 @@
 .routeList {
   -webkit-overflow-scrolling: touch;
 }
+
+.leftComponent {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }

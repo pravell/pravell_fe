@@ -4,7 +4,7 @@ import MainPage from './pages/MainPage/MainPage';
 import TabBar from './components/TabBar/TabBar';
 import LoginPage from './pages/LoginPage/LoginPage';
 import SignupPage from './pages/SignupPage/SignupPage';
-import CreatePlanPage from './pages/CreatePlanPlge/CreatePlanPage';
+import CreatePlanPage from './pages/CreatePlanPage/CreatePlanPage';
 import JoinByCodePage from './pages/JoinByCodePage/JoinbyCodePage';
 import MapPage from './pages/MapPage/MapPage';
 import MyPage from './pages/MyPage/MyPage';
@@ -13,6 +13,7 @@ import PlanDetailPage from './pages/PlanDetailPage/PlanDetailPage';
 import PlanSettingsPage from './pages/PlanSettingsPage/PlanSettingsPage';
 import RouteDetail from './pages/PlanDetailPage/components/RouteDetail';
 import PlanEditPage from './pages/PlanSettingsPage/PlanEditPage';
+import ExpensePage from './pages/ExpensePage/ExpensePage';
 import './App.css';
 
 const App = () => {
@@ -35,6 +36,7 @@ const App = () => {
             <Route path="/plan/:planId/settings" element={<PlanSettingsPage />} />
             <Route path="/plan/:planId/routes/:routeId" element={<RouteDetail />} />
             <Route path="/plan/:planId/edit" element={<PlanEditPage />} />
+            <Route path="/plan/:planId/expense" element={<ExpensePage />} />
           </Routes>
         </div>
         <TabBarController />

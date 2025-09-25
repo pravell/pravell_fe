@@ -1,10 +1,15 @@
 import React from 'react';
 import styles from './Header.module.css';
 
-const Header = ({ title }) => {
+const Header = ({ title, onBack }) => {
   return (
     <div className={styles.headerContainer}>
-      <h1 className={styles.title}>{title}</h1>
+      {onBack && (
+        <button onClick={onBack} className={styles.backButton}>
+          &lsaquo;
+        </button>
+      )}
+      <h1 className={styles.pageTitle}>{title}</h1>
     </div>
   );
 };

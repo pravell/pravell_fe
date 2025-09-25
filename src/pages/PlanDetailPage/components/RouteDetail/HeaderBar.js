@@ -22,6 +22,7 @@ export default function HeaderBar({
           <div style={{ display: "flex", gap: 8 }}>
             <CustomButton text="루트 수정" onClick={onClickRouteEdit}
               width="92px" height="34px" fontSize="13px" fontWeight="700" borderRadius="8px" />
+              
             <CustomButton text={routeDeleting ? "삭제 중..." : "루트 삭제"}
               onClick={routeDeleting ? undefined : onDeleteRoute}
               width="92px" height="34px" fontSize="13px" fontWeight="700"

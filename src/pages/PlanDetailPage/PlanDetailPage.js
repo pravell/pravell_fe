@@ -104,6 +104,7 @@ export default function PlanDetailPage() {
   const routeOverlaysRef = useRef({ markers: [], arrows: [], line: null });
 
   const [canEdit, setCanEdit] = useState(false);
+  const [isMember, setIsMember] = useState(false);
 
   const pinHEX = /^#[0-9A-F]{6}$/i;
 
@@ -202,6 +203,7 @@ export default function PlanDetailPage() {
     getPlan(planId, token)
       .then(({ data }) => {
         setCanEdit(Boolean(data?.isOwner) || Boolean(data?.isMember));
+        setIsMember(Boolean(data?.isOwner) || Boolean(data?.isMember));
       })
       .catch((_) => {
         setCanEdit(false);
@@ -696,13 +698,15 @@ export default function PlanDetailPage() {
 
   return (
     <div className={styles.container}>
-      <PlanDetailHeader
-        title={planTitle}
-        isLoggedIn={false}
-        onClickSettings={
-          canEdit ? () => navigate(`/plan/${planId}/settings`) : undefined
-        }
-      />
+    <PlanDetailHeader
+      title={planTitle}
+      isLoggedIn={true}
+      isMember={isMember}
+      planId={planId}
+      onClickSettings={
+        canEdit ? () => navigate(`/plan/${planId}/settings`) : undefined
+      }
+    />
 
       <SearchBar
         keyword={keyword}

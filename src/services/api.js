@@ -192,6 +192,9 @@ export const deleteRoutePlaces = (routeId, deleteIds, token) =>
     data: { deleteRoutePlaceId: deleteIds },
   });
 
+export const getExpensesByPlan = (planId, params, token) =>
+  API.get(`/v1/plans/${planId}/expenses`, { ...authHeader(token), params });
+
 export const parseApiError = (err) => {
   const status = err?.response?.status;
   const code = err?.response?.data?.code;
