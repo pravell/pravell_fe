@@ -14,6 +14,7 @@ import PlanSettingsPage from './pages/PlanSettingsPage/PlanSettingsPage';
 import RouteDetail from './pages/PlanDetailPage/components/RouteDetail';
 import PlanEditPage from './pages/PlanSettingsPage/PlanEditPage';
 import ExpensePage from './pages/ExpensePage/ExpensePage';
+import ExpenseDetailPage from './pages/ExpensePage/ExpenseDetailPage';
 import './App.css';
 
 const App = () => {
@@ -37,6 +38,7 @@ const App = () => {
             <Route path="/plan/:planId/routes/:routeId" element={<RouteDetail />} />
             <Route path="/plan/:planId/edit" element={<PlanEditPage />} />
             <Route path="/plan/:planId/expense" element={<ExpensePage />} />
+            <Route path="/plan/:planId/expense/:expenseId" element={<ExpenseDetailPage />} />
           </Routes>
         </div>
         <TabBarController />

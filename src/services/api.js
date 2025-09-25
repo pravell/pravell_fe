@@ -198,6 +198,15 @@ export const getExpensesByPlan = (planId, params, token) =>
 export const createExpense = (planId, payload, token) =>
   API.post(`/v1/plans/${planId}/expenses`, payload, authHeader(token));
 
+export const getExpenseDetail = (expenseId, token) =>
+  API.get(`/v1/expenses/${expenseId}`, authHeader(token));
+
+export const deleteExpense = (expenseId, token) =>
+  API.delete(`/v1/expenses/${expenseId}`, authHeader(token));
+
+export const updateExpense = (expenseId, payload, token) =>
+  API.patch(`/v1/expenses/${expenseId}`, payload, authHeader(token));
+
 export const parseApiError = (err) => {
   const status = err?.response?.status;
   const code = err?.response?.data?.code;

@@ -234,7 +234,11 @@ export default function ExpensePage() {
       <div className={styles.expenseList}>
         {expenses.length > 0 ? (
           expenses.map((expense, index) => (
-            <div key={index} className={styles.expenseItem}>
+            <div
+              key={expense.expenseId || index}
+              className={styles.expenseItem}
+              onClick={() => navigate(`/plan/${planId}/expense/${expense.expenseId}`)}
+            >
               <div className={styles.expenseInfo}>
                 <div className={styles.expenseTitle}>{expense.title}</div>
                 <div className={styles.expenseAmount}>

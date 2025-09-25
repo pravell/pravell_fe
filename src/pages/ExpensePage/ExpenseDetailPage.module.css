@@ -2,10 +2,11 @@
   padding: 16px;
   max-width: 410px;
   margin: 0 auto;
+  margin-top: 60px;
 }
 
 .loading,
-.emptyMessage {
+.empty {
   text-align: center;
   color: #888;
   padding: 20px;
@@ -34,59 +35,46 @@
   font-weight: 700;
 }
 
-.topSection {
-  margin-top: 76px;
-}
-
-.expenseList {
+.detailContainer {
   margin-top: 16px;
-}
-
-.expenseItem {
-  background: #f9f9f9;
+  padding: 16px;
+  background-color: #f9f9f9;
   border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.expenseInfo {
+.detailItem {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  padding: 12px 0;
   border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
 }
 
-.expenseTitle {
-  font-weight: 600;
-  font-size: 16px;
+.detailItem:last-child {
+  border-bottom: none;
 }
 
-.expenseAmount {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--tertiary-color);
+.label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 80px;
 }
 
-.expenseDetails {
-  font-size: 12px;
-  color: #555;
-  line-height: 1.5;
+.value {
+  font-size: 14px;
+  color: #000;
+  text-align: right;
+  flex-grow: 1;
+  word-break: break-all;
 }
 
-.expenseDescription {
-  margin-bottom: 4px;
-}
-
-.paidBy {
-  margin-top: 4px;
-}
-
-.expenseDate {
-  font-size: 11px;
-  color: #999;
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .formContainer {
@@ -94,14 +82,6 @@
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 16px;
-}
-
-.formTitle {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  text-align: center;
 }
 
 .formField {
@@ -115,37 +95,15 @@
   margin-bottom: 4px;
 }
 
-.inputWrapper {
-  position: relative;
-}
-
-.inputField {
+.formField input,
+.formField select,
+.formField textarea {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 14px;
   box-sizing: border-box;
-}
-
-.charCount {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  font-size: 12px;
-  color: #888;
-}
-
-.formField textarea {
-  height: 80px;
-  resize: vertical;
-  padding-right: 60px;
-}
-
-.formField input,
-.formField select {
-  padding-right: 60px;
 }
 
 .formActions {

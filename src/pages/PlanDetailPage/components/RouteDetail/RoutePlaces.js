@@ -191,7 +191,6 @@ export default function RoutePlaces({
               </div>
               <div className={styles.routeAddr}>{p.address || ""}</div>
               <div className={styles.routeAddr}>{p.roadAddress || ""}</div>
-              {/* ✅ p.description이 있을 때만 span 태그를 렌더링합니다. */}
               {!manageMode && p.description && <span className={styles.routeDescTxt}>{p.description}</span>}
               
 
