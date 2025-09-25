@@ -195,6 +195,9 @@ export const deleteRoutePlaces = (routeId, deleteIds, token) =>
 export const getExpensesByPlan = (planId, params, token) =>
   API.get(`/v1/plans/${planId}/expenses`, { ...authHeader(token), params });
 
+export const createExpense = (planId, payload, token) =>
+  API.post(`/v1/plans/${planId}/expenses`, payload, authHeader(token));
+
 export const parseApiError = (err) => {
   const status = err?.response?.status;
   const code = err?.response?.data?.code;
