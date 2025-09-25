@@ -1,13 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ExpensePage.module.css";
-import {
-  getExpensesByPlan,
-  parseApiError,
-  getAccessToken,
-  getPlanDetail,
-  createExpense,
-} from "../../services/api";
+import { getExpensesByPlan, parseApiError, getAccessToken, getPlanDetail, createExpense } from "../../services/api";
 
 import Header from "../../components/Header/Header";
 import CustomButton from "../../components/CustomButton/CustomButton";
@@ -115,6 +109,12 @@ export default function ExpensePage() {
     }
   };
 
+  const handleAmountChange = (e) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+    if (isNaN(Number(rawValue))) return;
+    setExpenseForm(prev => ({ ...prev, amount: Number(rawValue).toLocaleString() }));
+  };
+
   if (loading) {
     return <div className={styles.loading}>지출 내역을 불러오는 중...</div>;
   }
@@ -154,12 +154,11 @@ export default function ExpensePage() {
           <div className={styles.formField}>
             <label>금액 (원)</label>
             <input
-              type="number"
+              type="text"
               value={expenseForm.amount}
-              onChange={(e) =>
-                setExpenseForm((prev) => ({ ...prev, amount: e.target.value }))
-              }
+              onChange={handleAmountChange}
               className={styles.inputField}
+              inputMode="numeric"
             />
           </div>
           <div className={styles.formField}>
