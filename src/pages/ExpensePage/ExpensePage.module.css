@@ -2,6 +2,7 @@
   padding: 16px;
   max-width: 410px;
   margin: 0 auto;
+  padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
 }
 
 .loading,
@@ -153,4 +154,100 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 16px;
+}
+
+.settlementContainer {
+  margin: 16px 0;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.settlementTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+.summarySection {
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 12px;
+}
+
+.settlementHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.summaryLabel {
+  color: #555;
+}
+.summaryValue {
+  font-weight: 600;
+}
+.balancesSection {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 12px;
+}
+.balancesTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.balanceItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.balanceNickname {
+  font-weight: 600;
+}
+.balancePaid {
+  color: #777;
+  font-size: 13px;
+}
+.balanceAmount {
+  font-weight: 700;
+}
+.transactionsSection {
+}
+.transactionsTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.transactionItem {
+  display: grid;
+  grid-template-columns: 1fr 24px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.transactionFrom,
+.transactionTo {
+  font-weight: 600;
+}
+.transactionArrow {
+  text-align: center;
+}
+.transactionAmount {
+  font-weight: 700;
 }

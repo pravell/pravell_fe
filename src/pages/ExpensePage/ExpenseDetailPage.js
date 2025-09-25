@@ -69,7 +69,6 @@ export default function ExpenseDetailPage() {
     setIsDeleting(true);
     try {
       await deleteExpense(expenseId, token);
-      alert("지출 내역이 삭제되었습니다.");
       navigate(-1);
     } catch (e) {
       const { message } = parseApiError(e);
